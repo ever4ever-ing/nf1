@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Lista de Usuarios</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Email</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if users %}
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.nombre }}</td>
+                    <td>{{ user.apellido }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <a href="{{ url_for('user_profile', user_id=user.id) }}" class="btn btn-sm btn-info">Ver Perfil</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <p>No hay usuarios registrados.</p>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+```
+
+## 7.7. Crear una vista para mostrar el perfil de un usuario

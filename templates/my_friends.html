@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Mis Amigos</h2>
+    {% if friends %}
+        <ul class="list-group">
+        {% for friend in friends %}
+            <li class="list-group-item">
+                {{ friend.username }}
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Aún no tienes amigos en tu lista.</p>
+    {% endif %}
+</div>
+{% endblock content %}

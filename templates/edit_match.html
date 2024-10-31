@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Editar Partido{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Editar Partido</h2>
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.title.label(class="form-control-label") }}
+            {{ form.title(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.date.label(class="form-control-label") }}
+            {{ form.date(class="form-control", type="datetime-local") }}
+        </div>
+        <div class="form-group">
+            {{ form.location.label(class="form-control-label") }}
+            {{ form.location(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+
+    <h3 class="mt-4">Jugadores Actuales</h3>
+    <ul class="list-group" id="playersList">
+        {% for player in match.players %}
+            <li class="list-group-item">{{ player.username }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3 class="mt-4">Añadir Amigos al Partido</h3>
+    <ul class="list-group" id="friendsList">
+        {% for friend in friends %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ friend.username }}
+                <button class="btn btn-success btn-sm add-player" data-friend-id="{{ friend.id }}">Añadir al partido</button>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addButtons = document.querySelectorAll('.add-player');
+    addButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const friendId = this.getAttribute('data-friend-id');
+            const matchId = '{{ match.id }}';
+            
+            fetch(`/match/add_player/${matchId}/${friendId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    this.disabled = true;
+                    this.textContent = 'Añadido';
+                    // Actualizar la lista de jugadores
+                    const playersList = document.getElementById('playersList');
+                    const newPlayer = document.createElement('li');
+                    newPlayer.className = 'list-group-item';
+                    newPlayer.textContent = this.parentElement.firstChild.textContent.trim();
+                    playersList.appendChild(newPlayer);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
+{% endblock %}

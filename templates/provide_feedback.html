@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h1>Proporcionar retroalimentación para {{ match.title }}</h1>
+    <form method="POST">
+        {% for player in match.players %}
+            <h2>{{ player.nombre }} {{ player.apellido }}</h2>
+            <div class="form-group">
+                <label for="talent_{{ player.id }}">Talento:</label>
+                <input type="number" name="talent_{{ player.id }}" min="1" max="5" required>
+            </div>
+            <div class="form-group">
+                <label for="committed_{{ player.id }}">Compromiso:</label>
+                <input type="number" name="committed_{{ player.id }}" min="1" max="5" required>
+            </div>
+            <div class="form-group">
+                <label for="friendliness_{{ player.id }}">Amigabilidad:</label>
+                <input type="number" name="friendliness_{{ player.id }}" min="1" max="5" required>
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Enviar retroalimentación</button>
+    </form>
+{% endblock %}
