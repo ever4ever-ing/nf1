@@ -1,0 +1,10 @@
+flask
+flask_sqlalchemy
+flask_bcrypt
+flask_login
+flask_apscheduler
+flask_wtf
+pymysql
+requests
+flask_mail
+gunicorn
