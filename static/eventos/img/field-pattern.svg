@@ -1,0 +1,33 @@
+<!-- Ejemplo de SVG: Patrón de cancha de fútbol -->
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+    <defs>
+        <pattern id="grass" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+            <rect width="20" height="20" fill="#2ecc71"/>
+            <rect width="20" height="10" fill="#27ae60" opacity="0.3"/>
+        </pattern>
+    </defs>
+    
+    <!-- Campo -->
+    <rect width="800" height="600" fill="url(#grass)"/>
+    
+    <!-- Líneas blancas -->
+    <g stroke="white" stroke-width="3" fill="none">
+        <!-- Borde exterior -->
+        <rect x="50" y="50" width="700" height="500"/>
+        
+        <!-- Línea central -->
+        <line x1="400" y1="50" x2="400" y2="550"/>
+        
+        <!-- Círculo central -->
+        <circle cx="400" cy="300" r="80"/>
+        <circle cx="400" cy="300" r="3" fill="white"/>
+        
+        <!-- Áreas -->
+        <rect x="50" y="200" width="100" height="200"/>
+        <rect x="650" y="200" width="100" height="200"/>
+        
+        <!-- Áreas pequeñas -->
+        <rect x="50" y="250" width="50" height="100"/>
+        <rect x="700" y="250" width="50" height="100"/>
+    </g>
+</svg>

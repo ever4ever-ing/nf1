@@ -31,7 +31,6 @@ media/
 
 # Static files (collected)
 staticfiles/
-static/
 
 # OS
 .DS_Store
