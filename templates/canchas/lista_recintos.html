@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Recintos - NF1 Eventos{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mb-3">
+    <div class="card-body p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="card-title h4 mb-0">
+                <i class="bi bi-building text-primary"></i> Gestión de Recintos
+            </h1>
+            <a href="{% url 'canchas:crear_recinto' %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle"></i> Crear Recinto
+            </a>
+        </div>
+        
+        <p class="text-muted small mb-0">
+            <i class="bi bi-info-circle"></i> Lista de todos los recintos registrados en el sistema.
+        </p>
+    </div>
+</div>
+
+{% if recintos %}
+    <div class="table-responsive">
+        <table class="table table-hover table-sm">
+            <thead class="table-primary">
+                <tr>
+                    <th><i class="bi bi-building"></i> Recinto</th>
+                    <th><i class="bi bi-geo-alt"></i> Localidad</th>
+                    <th><i class="bi bi-house-door"></i> Dirección</th>
+                    <th><i class="bi bi-diagram-3"></i> Canchas</th>
+                    <th class="text-center"><i class="bi bi-gear"></i> Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recinto in recintos %}
+                <tr>
+                    <td class="fw-bold">{{ recinto.nombre }}</td>
+                    <td>{{ recinto.id_localidad.nombre }}</td>
+                    <td class="small text-muted">{{ recinto.direccion|truncatewords:10 }}</td>
+                    <td>
+                        <span class="badge bg-info text-dark">
+                            {{ recinto.cancha_set.count }} cancha{{ recinto.cancha_set.count|pluralize }}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <a href="{% url 'canchas:editar_recinto' recinto.id_recinto %}" 
+                               class="btn btn-outline-primary" 
+                               title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="mt-3">
+        <p class="text-muted small">
+            <i class="bi bi-info-circle"></i> Total: {{ recintos.count }} recinto{{ recintos.count|pluralize }}
+        </p>
+    </div>
+{% else %}
+    <div class="alert alert-info small" role="alert">
+        <i class="bi bi-info-circle"></i> No hay recintos registrados. 
+        <a href="{% url 'canchas:crear_recinto' %}" class="alert-link">Crea el primero</a>.
+    </div>
+{% endif %}
+
+<div class="mt-3">
+    <a href="{% url 'canchas:lista_canchas' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Volver a Canchas
+    </a>
+</div>
+{% endblock %}

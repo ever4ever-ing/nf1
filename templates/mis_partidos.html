@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Partidos - NF1 Eventos{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h1 class="card-title"><i class="bi bi-person-circle text-primary"></i> Mis Partidos</h1>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <h3 class="mb-0"><i class="bi bi-star-fill"></i> Partidos que Organizo</h3>
+    </div>
+    <div class="card-body">
+        {% if partidos_organizados %}
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                {% for partido in partidos_organizados %}
+                    <div class="col">
+                        <div class="card h-100 border-success">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ partido.lugar }}</h5>
+                                <p class="card-text">
+                                    <i class="bi bi-geo-alt-fill text-primary"></i> <strong>Localidad:</strong> {{ partido.id_localidad.nombre }}<br>
+                                    {% if partido.fecha_inicio %}
+                                        <i class="bi bi-calendar3"></i> <strong>Fecha:</strong> {{ partido.fecha_inicio|date:"d/m/Y H:i" }}<br>
+                                    {% else %}
+                                        <i class="bi bi-calendar3"></i> <strong>Fecha:</strong> <span class="text-muted">Por confirmar</span><br>
+                                    {% endif %}
+                                    <i class="bi bi-people-fill text-success"></i> <strong>Jugadores:</strong> {{ partido.num_participantes }} / {{ partido.max_jugadores }}
+                                </p>
+                                <span class="badge bg-success">Organizador</span>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="{% url 'detalle_partido' partido.id_partido %}" class="btn btn-primary">
+                                    <i class="bi bi-eye"></i> Ver Detalle
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No has organizado ningún partido aún.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-success text-white">
+        <h3 class="mb-0"><i class="bi bi-people"></i> Partidos en los que Participo</h3>
+    </div>
+    <div class="card-body">
+        {% if partidos_participando %}
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                {% for partido in partidos_participando %}
+                    <div class="col">
+                        <div class="card h-100 border-primary">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ partido.lugar }}</h5>
+                                <p class="card-text">
+                                    <i class="bi bi-geo-alt-fill text-primary"></i> <strong>Localidad:</strong> {{ partido.id_localidad.nombre }}<br>
+                                    {% if partido.fecha_inicio %}
+                                        <i class="bi bi-calendar3"></i> <strong>Fecha:</strong> {{ partido.fecha_inicio|date:"d/m/Y H:i" }}<br>
+                                    {% else %}
+                                        <i class="bi bi-calendar3"></i> <strong>Fecha:</strong> <span class="text-muted">Por confirmar</span><br>
+                                    {% endif %}
+                                    <i class="bi bi-people-fill text-success"></i> <strong>Jugadores:</strong> {{ partido.num_participantes }} / {{ partido.max_jugadores }}<br>
+                                    <i class="bi bi-person-badge"></i> <strong>Organizador:</strong> {{ partido.id_organizador.nombre }} {{ partido.id_organizador.apellido }}
+                                </p>
+                                <span class="badge bg-info">Participante</span>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="{% url 'detalle_partido' partido.id_partido %}" class="btn btn-primary">
+                                    <i class="bi bi-eye"></i> Ver Detalle
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No estás participando en ningún partido aún.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

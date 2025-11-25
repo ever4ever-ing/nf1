@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Invitar Miembro{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card shadow">
+        <div class="card-body">
+            <h3><i class="bi bi-person-plus-fill"></i> Invitar Miembro a {{ equipo.nombre }}</h3>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_usuario" class="form-label">Seleccionar Usuario</label>
+                    <select name="id_usuario" id="id_usuario" class="form-select" required>
+                        <option value="">Selecciona un usuario...</option>
+                        {% for usuario in usuarios_disponibles %}
+                        <option value="{{ usuario.id_usuario }}">{{ usuario.nombre }} {{ usuario.apellido }} ({{ usuario.email }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="mensaje" class="form-label">Mensaje (opcional)</label>
+                    <textarea name="mensaje" id="mensaje" class="form-control" rows="3" placeholder="Envía un mensaje de invitación..."></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success"><i class="bi bi-send-fill"></i> Enviar Invitación</button>
+                    <a href="{% url 'competitiva:detalle_equipo' equipo.id_equipo %}" class="btn btn-secondary"><i class="bi bi-x"></i> Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Equipos{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="display-5 mb-4">
+        <i class="bi bi-shield-fill-check text-primary"></i> Mis Equipos
+    </h1>
+
+    {% if equipos %}
+    <div class="row">
+        {% for equipo in equipos %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header text-white" style="background-color: {{ equipo.color_primario }};">
+                    <h5 class="mb-0">{{ equipo.nombre }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">{{ equipo.descripcion|truncatewords:15|default:"Sin descripción" }}</p>
+                    <span class="badge bg-primary">
+                        <i class="bi bi-people-fill"></i> {{ equipo.num_miembros }} miembros
+                    </span>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'competitiva:detalle_equipo' equipo.id_equipo %}" class="btn btn-sm btn-primary w-100">
+                        <i class="bi bi-eye-fill"></i> Ver Equipo
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+        <h4>No perteneces a ningún equipo</h4>
+        <p class="text-muted">Crea tu propio equipo o espera una invitación</p>
+        <a href="{% url 'competitiva:crear_equipo' %}" class="btn btn-success mt-3">
+            <i class="bi bi-plus-circle-fill"></i> Crear Equipo
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

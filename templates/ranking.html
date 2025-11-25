@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ranking Friendly{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-4 text-center mb-4">
+                <i class="bi bi-trophy-fill text-warning"></i> Ranking Friendly
+            </h1>
+            <p class="text-center text-muted mb-5">Los jugadores más activos de nuestra comunidad</p>
+            
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th width="80" class="text-center">Posición</th>
+                                    <th>Usuario</th>
+                                    <th class="text-center">Puntos</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for usuario in usuarios %}
+                                <tr {% if usuario.id_usuario == request.user.id_usuario %}class="table-info"{% endif %}>
+                                    <td class="text-center align-middle">
+                                        {% if forloop.counter == 1 %}
+                                            <span class="badge bg-warning text-dark fs-5">
+                                                <i class="bi bi-trophy-fill"></i> {{ forloop.counter }}
+                                            </span>
+                                        {% elif forloop.counter == 2 %}
+                                            <span class="badge bg-secondary fs-5">
+                                                <i class="bi bi-trophy-fill"></i> {{ forloop.counter }}
+                                            </span>
+                                        {% elif forloop.counter == 3 %}
+                                            <span class="badge bg-danger fs-5">
+                                                <i class="bi bi-trophy-fill"></i> {{ forloop.counter }}
+                                            </span>
+                                        {% else %}
+                                            <span class="fs-5 fw-bold">{{ forloop.counter }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle">
+                                        <div class="d-flex align-items-center">
+                                            {% if usuario.foto_perfil %}
+                                                <img src="{{ usuario.foto_perfil.url }}" alt="{{ usuario.nombre }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; font-size: 20px;">
+                                                    {{ usuario.nombre.0 }}{{ usuario.apellido.0 }}
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <div class="fw-bold">{{ usuario.nombre }} {{ usuario.apellido }}</div>
+                                                {% if usuario.id_usuario == request.user.id_usuario %}
+                                                    <small class="text-primary"><i class="bi bi-person-fill"></i> Tú</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <span class="badge bg-primary fs-6">
+                                            <i class="bi bi-star-fill"></i> {{ usuario.puntos_friendly }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <a href="{% url 'ver_perfil_usuario' usuario.id_usuario %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Ver Perfil
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5">
+                                        <i class="bi bi-inbox fs-1 d-block mb-3 text-muted"></i>
+                                        <p class="text-muted">No hay usuarios en el ranking aún</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-4">
+                <h5><i class="bi bi-info-circle-fill"></i> ¿Cómo ganar puntos?</h5>
+                <ul class="mb-0">
+                    <li><strong>+10 puntos</strong> por unirte a un partido</li>
+                    <li><strong>+5 puntos</strong> por cada usuario que se une a un partido que organizas</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

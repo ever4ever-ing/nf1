@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ partido.lugar }} - NF1 Eventos{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+    <li class="breadcrumb-item">
+      <a href="{% url 'lista_partidos' %}">Partidos</a>
+    </li>
+    <li class="breadcrumb-item active">{{ partido.lugar }}</li>
+  </ol>
+</nav>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h1 class="card-title">
+      <i class="bi bi-trophy-fill text-warning"></i> {{ partido.lugar }}
+    </h1>
+
+    <div class="row mt-4">
+      <div class="col-lg-8">
+        <h3 class="mb-3">
+          <i class="bi bi-info-circle-fill text-primary"></i> Información del
+          Partido
+        </h3>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            <i class="bi bi-geo-alt-fill text-primary"></i>
+            <strong>Localidad:</strong> {{ partido.id_localidad.nombre }}
+          </li>
+          <li class="list-group-item">
+            {% if partido.fecha_inicio %}
+            <i class="bi bi-calendar3"></i> <strong>Fecha:</strong> {{ partido.fecha_inicio|date:"d/m/Y H:i" }}
+            {% else %}
+            <i class="bi bi-calendar3"></i> <strong>Fecha:</strong>
+            <span class="text-muted">Por confirmar</span>
+            {% endif %}
+          </li>
+          <li class="list-group-item">
+            <i class="bi bi-people-fill text-success"></i>
+            <strong>Jugadores:</strong> {{ participantes.count }} / {{ partido.max_jugadores }}
+          </li>
+          <li class="list-group-item">
+            <i class="bi bi-check-circle-fill text-success"></i>
+            <strong>Espacios disponibles:</strong>
+            <span
+              class="badge bg-{% if espacios_disponibles > 0 %}success{% else %}danger{% endif %}"
+              >{{ espacios_disponibles }}</span
+            >
+          </li>
+          <li class="list-group-item">
+            <i class="bi bi-person-badge"></i> <strong>Organizador:</strong> {{ partido.id_organizador.nombre }} {{ partido.id_organizador.apellido }}
+          </li>
+        </ul>
+
+        {% if partido.id_reserva %}
+        <div class="alert alert-info mt-3">
+          <h5 class="alert-heading">
+            <i class="bi bi-building"></i> Información de Reserva
+          </h5>
+          <hr />
+          <p class="mb-1">
+            <i class="bi bi-shop"></i> <strong>Recinto:</strong> {{ partido.id_reserva.id_recinto.nombre }}
+          </p>
+          <p class="mb-1">
+            <i class="bi bi-geo-alt"></i> <strong>Dirección:</strong> {{ partido.id_reserva.id_recinto.direccion }}
+          </p>
+          <p class="mb-1">
+            <i class="bi bi-diagram-3"></i> <strong>Cancha:</strong> {{ partido.id_reserva.id_cancha.nombre }}
+          </p>
+          <p class="mb-0">
+            <i class="bi bi-clock"></i> <strong>Horario:</strong> {{ partido.id_reserva.hora_inicio }} - {{ partido.id_reserva.hora_fin }}
+          </p>
+        </div>
+        {% endif %}
+        
+        {% if partido.descripcion %}
+        <div class="mt-3">
+          <h5><i class="bi bi-card-text"></i> Descripción</h5>
+          <p class="text-muted">{{ partido.descripcion }}</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card border-primary mb-3">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-people"></i> Participantes</h5>
+          </div>
+          <div class="card-body">
+            {% if participantes %}
+            <ul class="list-group list-group-flush">
+              {% for participante in participantes %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                  <i class="bi bi-person-circle"></i> {{ participante.id_usuario.nombre }} {{ participante.id_usuario.apellido }}
+                </span>
+                {% if participante.id_usuario == partido.id_organizador %}
+                <span class="badge bg-primary">Organizador</span>
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted text-center">
+              Aún no hay participantes inscritos.
+            </p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de Mensajes -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card border-info">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+              <i class="bi bi-chat-dots"></i> Chat del Partido
+            </h5>
+          </div>
+          <div class="card-body">
+            {% if mensajes %}
+            <div class="mensajes-container" style="max-height: 400px; overflow-y: auto">
+              {% for mensaje in mensajes %}
+              <div class="mensaje mb-3 {% if mensaje.id_usuario == request.user %}bg-light{% endif %} p-3 rounded">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <strong>
+                      <i class="bi bi-person-circle"></i> 
+                      {{ mensaje.id_usuario.nombre }} {{ mensaje.id_usuario.apellido }}
+                      {% if mensaje.id_usuario == partido.id_organizador %}
+                      <span class="badge bg-primary ms-2">Organizador</span>
+                      {% endif %}
+                    </strong>
+                    <small class="text-muted ms-2">
+                      <i class="bi bi-clock"></i> {{ mensaje.fecha_creacion|date:"d/m/Y H:i" }}
+                    </small>
+                  </div>
+                </div>
+                <p class="mb-0 mt-2">{{ mensaje.mensaje }}</p>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted text-center">
+              No hay mensajes aún. ¡Sé el primero en escribir!
+            </p>
+            {% endif %}
+            
+            {% if puede_enviar_mensaje %}
+            <hr />
+            <form method="post" class="mt-3">
+              {% csrf_token %}
+              <div class="mb-3">
+                {{ form.mensaje }}
+                {% if form.mensaje.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.mensaje.errors }}
+                </div>
+                {% endif %}
+              </div>
+              <button type="submit" class="btn btn-info">
+                <i class="bi bi-send"></i> Enviar Mensaje
+              </button>
+            </form>
+            {% else %}
+            <div class="alert alert-warning mt-3">
+              <i class="bi bi-info-circle"></i> Únete al partido para poder
+              enviar mensajes.
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      {% if user.is_authenticated %}
+      {% if user == partido.id_organizador %}
+      <div class="d-flex justify-content-between align-items-center">
+        <a href="{% url 'lista_partidos' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left"></i> Volver a la lista
+        </a>
+        <div class="d-flex gap-2">
+          <a href="{% url 'editar_partido' partido.id_partido %}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Editar Partido
+          </a>
+          {% if esta_inscrito %}
+          <a href="{% url 'salir_partido' partido.id_partido %}" class="btn btn-danger">
+            <i class="bi bi-x-circle"></i> Salir del Partido
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% elif esta_inscrito %}
+      <div class="d-flex justify-content-end">
+        <a href="{% url 'salir_partido' partido.id_partido %}" class="btn btn-danger">
+          <i class="bi bi-x-circle"></i> Salir del Partido
+        </a>
+      </div>
+      {% elif espacios_disponibles > 0 %}
+      <div class="d-flex justify-content-end">
+        <a href="{% url 'unirse_partido' partido.id_partido %}" class="btn btn-success">
+          <i class="bi bi-check-circle"></i> Unirse al Partido
+        </a>
+      </div>
+      {% else %}
+      <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle-fill"></i> Partido completo
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="alert alert-warning">
+        <h5 class="alert-heading">
+          <i class="bi bi-info-circle"></i> Inicia sesión para unirte
+        </h5>
+        <p>Debes tener una cuenta para participar en este partido.</p>
+        <hr />
+        <div class="d-flex gap-2">
+          <a href="{% url 'login' %}?next={% url 'detalle_partido' partido.id_partido %}" class="btn btn-primary">
+            <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+          </a>
+          <a href="{% url 'registro' %}" class="btn btn-success">
+            <i class="bi bi-person-plus-fill"></i> Registrarse
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="mt-3">
+  <a href="{% url 'lista_partidos' %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Volver a la lista
+  </a>
+</div>
+
+<script>
+  // Auto-scroll al último mensaje
+  document.addEventListener("DOMContentLoaded", function () {
+    const mensajesContainer = document.querySelector(".mensajes-container");
+    if (mensajesContainer) {
+      mensajesContainer.scrollTop = mensajesContainer.scrollHeight;
+    }
+  });
+</script>
+{% endblock %}

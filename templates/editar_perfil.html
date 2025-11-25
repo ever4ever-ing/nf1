@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Perfil{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">
+                        <i class="bi bi-pencil-square"></i> Editar Perfil
+                    </h2>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="text-center mb-4">
+                            {% if user.foto_perfil %}
+                                <img src="{{ user.foto_perfil.url }}" alt="{{ user.nombre }}" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;" id="preview-foto">
+                            {% else %}
+                                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 150px; height: 150px; font-size: 60px;" id="preview-initials">
+                                    {{ user.nombre.0 }}{{ user.apellido.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="mb-3">
+                                <label for="foto_perfil" class="form-label">Foto de Perfil</label>
+                                <input type="file" class="form-control" id="foto_perfil" name="foto_perfil" accept="image/*">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nombre" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ user.nombre }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="apellido" class="form-label">Apellido *</label>
+                                <input type="text" class="form-control" id="apellido" name="apellido" value="{{ user.apellido }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" value="{{ user.email }}" disabled>
+                            <small class="text-muted">El email no se puede cambiar</small>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="telefono" class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control" id="telefono" name="telefono" value="{{ user.telefono|default:'' }}" placeholder="+56912345678">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                                <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ user.fecha_nacimiento|date:'Y-m-d' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="hobbies" class="form-label">Hobbies</label>
+                            <input type="text" class="form-control" id="hobbies" name="hobbies" value="{{ user.hobbies|default:'' }}" placeholder="Fútbol, Baloncesto, Natación (separados por comas)">
+                            <small class="text-muted">Separa tus hobbies con comas</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="biografia" class="form-label">Biografía</label>
+                            <textarea class="form-control" id="biografia" name="biografia" rows="4" placeholder="Cuéntanos algo sobre ti...">{{ user.biografia|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Guardar Cambios
+                            </button>
+                            <a href="{% url 'mi_perfil' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Preview de la foto de perfil
+document.getElementById('foto_perfil').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('preview-foto');
+            if (preview) {
+                preview.src = e.target.result;
+            } else {
+                const initials = document.getElementById('preview-initials');
+                if (initials) {
+                    initials.outerHTML = `<img src="${e.target.result}" alt="Preview" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;" id="preview-foto">`;
+                }
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endblock %}

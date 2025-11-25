@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - NF1 Eventos{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h1 class="card-title"><i class="bi bi-trophy-fill text-warning"></i> Bienvenido a NF1 Eventos Deportivos</h1>
+        <p class="card-text lead">Encuentra y únete a partidos de fútbol en tu localidad. Conecta con otros jugadores y organiza tus propios eventos.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h2 class="card-title mb-4"><i class="bi bi-calendar-event"></i> Próximos Partidos</h2>
+        {% if partidos %}
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                {% for partido in partidos %}
+                    <div class="col">
+                        <div class="card h-100 border-primary">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ partido.lugar }}</h5>
+                                <p class="card-text">
+                                    <i class="bi bi-geo-alt-fill text-primary"></i> <strong>Localidad:</strong> {{ partido.id_localidad.nombre }}<br>
+                                    <i class="bi bi-calendar3"></i> <strong>Fecha:</strong> {{ partido.fecha_inicio|date:"d/m/Y H:i" }}<br>
+                                    <i class="bi bi-people-fill text-success"></i> <strong>Jugadores:</strong> {{ partido.num_participantes }} / {{ partido.max_jugadores }}<br>
+                                    <i class="bi bi-person-badge"></i> <strong>Organizador:</strong> {{ partido.id_organizador.nombre }} {{ partido.id_organizador.apellido }}
+                                </p>
+                                {% if partido.descripcion %}
+                                    <p class="card-text text-muted">{{ partido.descripcion|truncatewords:20 }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="{% url 'detalle_partido' partido.id_partido %}" class="btn btn-primary">Ver Detalle</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                <i class="bi bi-info-circle"></i> No hay partidos próximos disponibles en este momento.
+            </div>
+        {% endif %}
+        
+        <div class="mt-4">
+            <a href="{% url 'lista_partidos' %}" class="btn btn-lg btn-primary"><i class="bi bi-list-ul"></i> Ver Todos los Partidos</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

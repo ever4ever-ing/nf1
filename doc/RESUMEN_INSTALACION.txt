@@ -1,0 +1,95 @@
+Perfecto! El sistema de notificaciones y perfiles está completo. 
+
+## ✅ FUNCIONALIDADES IMPLEMENTADAS:
+
+### 1. Sistema de Notificaciones
+- Notificaciones en tiempo real cuando alguien se une a tu partido
+- Notificaciones cuando envían mensajes en tus partidos  
+- Notificaciones cuando alguien sale de tu partido
+- Contador automático en el navbar (se actualiza cada 30 segundos)
+- Página dedicada para ver todas las notificaciones
+- Marcar notificaciones como leídas (individual o todas)
+
+### 2. Sistema de Perfiles
+- **Foto de perfil**: Upload y preview de imágenes
+- **Edad**: Campo de fecha de nacimiento con cálculo automático
+- **Hobbies**: Campo de texto separado por comas, se muestran como badges
+- **Biografía**: Campo de texto largo para descripción personal
+- Vista de perfil propio con estadísticas
+- Vista pública del perfil de otros usuarios
+- Formulario de edición con preview de foto
+
+### 3. Sistema de Ranking Friendly
+- **+10 puntos** cada vez que te unes a un partido
+- **+5 puntos** al organizador por cada usuario que se une
+- Ranking con top 50 jugadores más activos
+- Medallas especiales para los 3 primeros lugares
+- Badge de puntos visible en el navbar
+- Estadísticas completas en el perfil
+
+### 4. Mejoras en la UI
+- Dropdown de usuario en navbar con foto de perfil y puntos
+- Menú desplegable con acceso rápido a perfil y notificaciones
+- Link de Ranking en el navbar principal
+- Diseño responsive y moderno
+
+## 📋 PARA COMPLETAR LA INSTALACIÓN:
+
+### Paso 1: Ejecutar scripts SQL
+Necesitas ejecutar estos dos comandos en MySQL para crear/actualizar las tablas:
+
+```sql
+-- Crear tabla de notificaciones
+CREATE TABLE IF NOT EXISTS `notificaciones` (
+  `id_notificacion` int NOT NULL AUTO_INCREMENT,
+  `id_usuario_id` int NOT NULL,
+  `id_partido_id` int NOT NULL,
+  `tipo` varchar(50) NOT NULL,
+  `mensaje` text NOT NULL,
+  `leida` tinyint(1) NOT NULL DEFAULT 0,
+  `fecha_creacion` datetime(6) NOT NULL,
+  `id_usuario_relacionado_id` int DEFAULT NULL,
+  `id_mensaje_id` int DEFAULT NULL,
+  PRIMARY KEY (`id_notificacion`),
+  KEY `notificaciones_id_usuario_id` (`id_usuario_id`),
+  KEY `notificaciones_id_partido_id` (`id_partido_id`),
+  KEY `notificaciones_fecha_creacion` (`fecha_creacion`),
+  CONSTRAINT `notificaciones_id_usuario_fk` FOREIGN KEY (`id_usuario_id`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE,
+  CONSTRAINT `notificaciones_id_partido_fk` FOREIGN KEY (`id_partido_id`) REFERENCES `partidos` (`id_partido`) ON DELETE CASCADE,
+  CONSTRAINT `notificaciones_id_usuario_relacionado_fk` FOREIGN KEY (`id_usuario_relacionado_id`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE,
+  CONSTRAINT `notificaciones_id_mensaje_fk` FOREIGN KEY (`id_mensaje_id`) REFERENCES `eventos_mensajepartido` (`id_mensaje`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Actualizar tabla usuarios con campos de perfil
+ALTER TABLE `usuarios` 
+ADD COLUMN `foto_perfil` varchar(100) DEFAULT NULL,
+ADD COLUMN `fecha_nacimiento` date DEFAULT NULL,
+ADD COLUMN `hobbies` text DEFAULT NULL,
+ADD COLUMN `biografia` text DEFAULT NULL,
+ADD COLUMN `puntos_friendly` int NOT NULL DEFAULT 0;
+```
+
+### Paso 2: Marcar migraciones como aplicadas
+```powershell
+.\venv\Scripts\python.exe manage.py migrate --fake
+```
+
+### Paso 3: Crear carpetas para archivos media
+```powershell
+mkdir media
+mkdir media\perfiles
+```
+
+### Paso 4: Iniciar el servidor
+```powershell
+.\venv\Scripts\python.exe manage.py runserver
+```
+
+## 🎯 NUEVAS URLs DISPONIBLES:
+- `/perfil/` - Ver mi perfil
+- `/perfil/editar/` - Editar mi perfil  
+- `/usuario/<id>/` - Ver perfil de otro usuario
+- `/ranking/` - Ver ranking de jugadores
+- `/notificaciones/` - Ver mis notificaciones
+
+Todo listo para usar! 🚀

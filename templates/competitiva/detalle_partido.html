@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ partido.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white">
+            <h3 class="mb-0"><i class="bi bi-trophy-fill"></i> {{ partido.nombre }}</h3>
+        </div>
+        <div class="card-body">
+            <div class="row text-center mb-4">
+                <div class="col-md-5">
+                    <div class="card">
+                        <div class="card-body" style="background-color: {{ partido.id_equipo_local.color_primario }}20;">
+                            {% if partido.id_equipo_local.logo %}
+                                <img src="{{ partido.id_equipo_local.logo.url }}" alt="{{ partido.id_equipo_local.nombre }}" class="mb-3" style="width: 100px; height: 100px; object-fit: contain;">
+                            {% endif %}
+                            <h4>{{ partido.id_equipo_local.nombre }}</h4>
+                            <small class="text-muted">Local</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-center justify-content-center">
+                    <div class="text-center">
+                        {% if partido.estado == 'finalizado' %}
+                            <div class="display-1 fw-bold">{{ partido.goles_local }} - {{ partido.goles_visitante }}</div>
+                        {% else %}
+                            <div class="display-4">VS</div>
+                        {% endif %}
+                        <div class="mt-2">
+                            {% if partido.estado == 'finalizado' %}
+                                <span class="badge bg-success">Finalizado</span>
+                            {% elif partido.estado == 'en_curso' %}
+                                <span class="badge bg-warning">En Curso</span>
+                            {% elif partido.estado == 'cancelado' %}
+                                <span class="badge bg-danger">Cancelado</span>
+                            {% else %}
+                                <span class="badge bg-info">Programado</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="card">
+                        <div class="card-body" style="background-color: {{ partido.id_equipo_visitante.color_primario }}20;">
+                            {% if partido.id_equipo_visitante.logo %}
+                                <img src="{{ partido.id_equipo_visitante.logo.url }}" alt="{{ partido.id_equipo_visitante.nombre }}" class="mb-3" style="width: 100px; height: 100px; object-fit: contain;">
+                            {% endif %}
+                            <h4>{{ partido.id_equipo_visitante.nombre }}</h4>
+                            <small class="text-muted">Visitante</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5><i class="bi bi-info-circle-fill"></i> Información del Partido</h5>
+                    <ul class="list-unstyled">
+                        <li><strong><i class="bi bi-calendar3"></i> Fecha:</strong> {{ partido.fecha_hora|date:"d/m/Y" }}</li>
+                        <li><strong><i class="bi bi-clock"></i> Hora:</strong> {{ partido.fecha_hora|time:"H:i" }}</li>
+                        <li><strong><i class="bi bi-geo-alt-fill"></i> Lugar:</strong> {{ partido.lugar }}</li>
+                        {% if partido.id_localidad %}
+                            <li><strong><i class="bi bi-map"></i> Localidad:</strong> {{ partido.id_localidad.nombre }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    {% if partido.descripcion %}
+                    <h5><i class="bi bi-file-text"></i> Descripción</h5>
+                    <p>{{ partido.descripcion|linebreaks }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if estadisticas %}
+            <div class="mt-4">
+                <h5><i class="bi bi-bar-chart-fill"></i> Estadísticas</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Jugador</th>
+                                <th>Equipo</th>
+                                <th class="text-center">Goles</th>
+                                <th class="text-center">Asistencias</th>
+                                <th class="text-center">TA</th>
+                                <th class="text-center">TR</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for est in estadisticas %}
+                            <tr>
+                                <td>{{ est.id_usuario.nombre }} {{ est.id_usuario.apellido }}</td>
+                                <td>{{ est.id_equipo.nombre }}</td>
+                                <td class="text-center">{{ est.goles }}</td>
+                                <td class="text-center">{{ est.asistencias }}</td>
+                                <td class="text-center">{{ est.tarjetas_amarillas }}</td>
+                                <td class="text-center">{{ est.tarjetas_rojas }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

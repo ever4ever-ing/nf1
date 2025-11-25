@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Invitaciones{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="display-5 mb-4"><i class="bi bi-envelope-fill"></i> Mis Invitaciones a Equipos</h1>
+    
+    {% if invitaciones %}
+    <div class="list-group">
+        {% for invitacion in invitaciones %}
+        <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1">{{ invitacion.id_equipo.nombre }}</h5>
+                    <p class="mb-1">Invitado por: <strong>{{ invitacion.id_invitador.nombre }} {{ invitacion.id_invitador.apellido }}</strong></p>
+                    {% if invitacion.mensaje %}
+                    <p class="mb-1 text-muted"><em>"{{ invitacion.mensaje }}"</em></p>
+                    {% endif %}
+                    <small class="text-muted"><i class="bi bi-calendar3"></i> {{ invitacion.fecha_invitacion|date:"d/m/Y H:i" }}</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'competitiva:responder_invitacion' invitacion.id_invitacion 'aceptar' %}" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Aceptar
+                    </a>
+                    <a href="{% url 'competitiva:responder_invitacion' invitacion.id_invitacion 'rechazar' %}" class="btn btn-danger">
+                        <i class="bi bi-x-circle"></i> Rechazar
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+        <h4>No tienes invitaciones pendientes</h4>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

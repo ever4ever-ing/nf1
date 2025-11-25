@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Partido - NF1 Eventos{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h1 class="card-title h4 mb-4">
+            <i class="bi bi-pencil text-primary"></i> Editar Partido
+        </h1>
+        
+        <div class="alert alert-warning small mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> 
+            <strong>Atención:</strong> Los participantes del partido serán notificados de los cambios que realices.
+        </div>
+        
+        <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger small" role="alert">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.lugar.id_for_label }}" class="form-label">
+                        <i class="bi bi-geo-alt"></i> {{ form.lugar.label }}
+                    </label>
+                    {{ form.lugar }}
+                    {% if form.lugar.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.lugar.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.id_localidad.id_for_label }}" class="form-label">
+                        <i class="bi bi-pin-map"></i> {{ form.id_localidad.label }}
+                    </label>
+                    {{ form.id_localidad }}
+                    {% if form.id_localidad.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.id_localidad.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.fecha_inicio.id_for_label }}" class="form-label">
+                        <i class="bi bi-calendar-event"></i> {{ form.fecha_inicio.label }}
+                    </label>
+                    {{ form.fecha_inicio }}
+                    {% if form.fecha_inicio.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.fecha_inicio.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.max_jugadores.id_for_label }}" class="form-label">
+                        <i class="bi bi-people"></i> {{ form.max_jugadores.label }}
+                    </label>
+                    {{ form.max_jugadores }}
+                    {% if form.max_jugadores.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.max_jugadores.errors }}
+                        </div>
+                    {% endif %}
+                    <div class="form-text small">
+                        <i class="bi bi-info-circle"></i> Actualmente hay {{ partido.jugadores_actuales }} jugadores inscritos.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.descripcion.id_for_label }}" class="form-label">
+                    <i class="bi bi-text-paragraph"></i> {{ form.descripcion.label }}
+                </label>
+                {{ form.descripcion }}
+                {% if form.descripcion.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.descripcion.errors }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Guardar Cambios
+                </button>
+                <a href="{% url 'detalle_partido' partido.id_partido %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+                <a href="{% url 'cancelar_partido' partido.id_partido %}" class="btn btn-outline-danger ms-auto">
+                    <i class="bi bi-trash"></i> Cancelar Partido
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

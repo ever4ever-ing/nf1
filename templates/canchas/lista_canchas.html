@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Canchas Disponibles - NF1 Eventos{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mb-3">
+    <div class="card-body p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="card-title h4 mb-0"><i class="bi bi-diagram-3 text-primary"></i> Canchas Disponibles</h1>
+            {% if user.is_staff %}
+            <div class="btn-group btn-group-sm" role="group">
+                <a href="{% url 'canchas:crear_cancha' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Nueva Cancha
+                </a>
+                <a href="{% url 'canchas:lista_recintos' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-building"></i> Recintos
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <form method="get" class="mt-3">
+            <div class="row g-2">
+                <div class="col-12 col-md-4">
+                    <label for="localidad" class="form-label small"><i class="bi bi-geo-alt"></i> Localidad:</label>
+                    <select name="localidad" id="localidad" class="form-select form-select-sm">
+                        <option value="">Todas las localidades</option>
+                        {% for localidad in localidades %}
+                            <option value="{{ localidad.id_localidad }}" {% if localidad_filtro == localidad.id_localidad|stringformat:"s" %}selected{% endif %}>
+                                {{ localidad.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label for="recinto" class="form-label small"><i class="bi bi-building"></i> Recinto:</label>
+                    <select name="recinto" id="recinto" class="form-select form-select-sm">
+                        <option value="">Todos los recintos</option>
+                        {% for recinto in recintos %}
+                            <option value="{{ recinto.id_recinto }}" {% if recinto_filtro == recinto.id_recinto|stringformat:"s" %}selected{% endif %}>
+                                {{ recinto.nombre }} - {{ recinto.id_localidad.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label for="tipo" class="form-label small"><i class="bi bi-tags"></i> Tipo:</label>
+                    <select name="tipo" id="tipo" class="form-select form-select-sm">
+                        <option value="">Todos los tipos</option>
+                        {% for tipo in tipos %}
+                            <option value="{{ tipo }}" {% if tipo_filtro == tipo %}selected{% endif %}>
+                                {{ tipo }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <i class="bi bi-funnel"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+            {% if localidad_filtro or recinto_filtro or tipo_filtro %}
+            <div class="mt-2">
+                <a href="{% url 'canchas:lista_canchas' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-x-circle"></i> Limpiar filtros
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+{% if canchas %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+        {% for cancha in canchas %}
+            <div class="col">
+                <div class="card shadow-sm h-100 border-start border-success border-3">
+                    <div class="card-body p-3">
+                        <h5 class="card-title h6 fw-bold mb-2">
+                            <i class="bi bi-diagram-3 text-success"></i> {{ cancha.nombre }}
+                        </h5>
+                        
+                        <div class="info-cancha small mb-2">
+                            <div class="mb-1">
+                                <i class="bi bi-building text-primary"></i>
+                                <strong>Recinto:</strong> <span class="text-muted">{{ cancha.id_recinto.nombre }}</span>
+                            </div>
+                            <div class="mb-1">
+                                <i class="bi bi-geo-alt-fill text-primary"></i>
+                                <strong>Localidad:</strong> <span class="text-muted">{{ cancha.id_recinto.id_localidad.nombre }}</span>
+                            </div>
+                            <div class="mb-1">
+                                <i class="bi bi-house-door text-primary"></i>
+                                <strong>Dirección:</strong> <span class="text-muted">{{ cancha.id_recinto.direccion }}</span>
+                            </div>
+                            {% if cancha.tipo %}
+                            <div class="mb-1">
+                                <i class="bi bi-tags text-primary"></i>
+                                <strong>Tipo:</strong> 
+                                <span class="badge bg-info text-dark">{{ cancha.tipo }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if user.is_authenticated %}
+                        <div class="d-flex justify-content-center mt-3 gap-2">
+                            <button class="btn btn-outline-success btn-sm" disabled>
+                                <i class="bi bi-calendar-check"></i> Próximamente: Reservar
+                            </button>
+                            {% if user.is_staff %}
+                            <a href="{% url 'canchas:editar_cancha' cancha.id_cancha %}" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <div class="mt-3">
+        <p class="text-muted small">
+            <i class="bi bi-info-circle"></i> Se encontraron {{ canchas.count }} cancha{{ canchas.count|pluralize }}
+        </p>
+    </div>
+{% else %}
+    <div class="alert alert-info small" role="alert">
+        <i class="bi bi-info-circle"></i> No se encontraron canchas con los filtros aplicados.
+    </div>
+{% endif %}
+
+<div class="mt-3">
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Volver al inicio
+    </a>
+</div>
+{% endblock %}

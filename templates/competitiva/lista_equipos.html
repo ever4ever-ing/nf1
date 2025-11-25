@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Equipos Competitivos{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5">
+            <i class="bi bi-shield-fill text-primary"></i> Equipos Competitivos
+        </h1>
+        {% if user.is_authenticated %}
+        <div>
+            <a href="{% url 'competitiva:mis_equipos' %}" class="btn btn-info">
+                <i class="bi bi-people-fill"></i> Mis Equipos
+            </a>
+            <a href="{% url 'competitiva:crear_equipo' %}" class="btn btn-success">
+                <i class="bi bi-plus-circle-fill"></i> Crear Equipo
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if equipos %}
+    <div class="row">
+        {% for equipo in equipos %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-header text-white" style="background-color: {{ equipo.color_primario }};">
+                    <div class="d-flex align-items-center">
+                        {% if equipo.logo %}
+                            <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-white text-dark rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; font-size: 20px; font-weight: bold;">
+                                {{ equipo.nombre.0 }}
+                            </div>
+                        {% endif %}
+                        <h5 class="mb-0">{{ equipo.nombre }}</h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if equipo.descripcion %}
+                        <p class="card-text text-muted">{{ equipo.descripcion|truncatewords:20 }}</p>
+                    {% else %}
+                        <p class="card-text text-muted fst-italic">Sin descripción</p>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            <small class="text-muted">
+                                <i class="bi bi-person-fill"></i> Anfitrión: {{ equipo.id_anfitrion.nombre }}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <span class="badge bg-primary">
+                            <i class="bi bi-people-fill"></i> {{ equipo.num_miembros }} miembros
+                        </span>
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <a href="{% url 'competitiva:detalle_equipo' equipo.id_equipo %}" class="btn btn-sm btn-primary w-100">
+                        <i class="bi bi-eye-fill"></i> Ver Equipo
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center py-5">
+        <i class="bi bi-shield-x fs-1 d-block mb-3"></i>
+        <h4>No hay equipos registrados</h4>
+        <p class="text-muted">Sé el primero en crear un equipo competitivo</p>
+        {% if user.is_authenticated %}
+        <a href="{% url 'competitiva:crear_equipo' %}" class="btn btn-success mt-3">
+            <i class="bi bi-plus-circle-fill"></i> Crear Equipo
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.hover-shadow {
+    transition: all 0.3s ease;
+}
+.hover-shadow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important;
+}
+</style>
+{% endblock %}

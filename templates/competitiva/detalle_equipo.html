@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ equipo.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card shadow">
+        <div class="card-header text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, {{ equipo.color_primario }} 0%, {{ equipo.color_secundario }} 100%);">
+            <div class="d-flex align-items-center">
+                {% if equipo.logo %}
+                    <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" class="rounded-circle me-3" style="width: 80px; height: 80px; object-fit: cover; border: 3px solid white;">
+                {% else %}
+                    <div class="bg-white text-dark rounded-circle d-inline-flex align-items-center justify-content-center me-3" style="width: 80px; height: 80px; font-size: 40px; font-weight: bold; border: 3px solid white;">
+                        {{ equipo.nombre.0 }}
+                    </div>
+                {% endif %}
+                <div>
+                    <h2 class="mb-0">{{ equipo.nombre }}</h2>
+                    <small>Anfitrión: {{ equipo.id_anfitrion.nombre }} {{ equipo.id_anfitrion.apellido }}</small>
+                </div>
+            </div>
+            {% if es_anfitrion %}
+            <div>
+                <a href="{% url 'competitiva:editar_equipo' equipo.id_equipo %}" class="btn btn-light">
+                    <i class="bi bi-pencil-fill"></i> Editar
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="card-body">
+            {% if equipo.descripcion %}
+            <div class="mb-4">
+                <h5><i class="bi bi-info-circle-fill"></i> Descripción</h5>
+                <p>{{ equipo.descripcion|linebreaks }}</p>
+            </div>
+            {% endif %}
+            
+            <div class="row mb-4">
+                <div class="col-md-4 text-center">
+                    <div class="bg-primary bg-gradient text-white rounded p-3">
+                        <i class="bi bi-people-fill fs-1"></i>
+                        <div class="fs-3 fw-bold">{{ miembros.count }}</div>
+                        <div>Miembros</div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="bg-success bg-gradient text-white rounded p-3">
+                        <i class="bi bi-trophy-fill fs-1"></i>
+                        <div class="fs-3 fw-bold">{{ equipo.contar_victorias }}</div>
+                        <div>Victorias</div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="bg-info bg-gradient text-white rounded p-3">
+                        <i class="bi bi-calendar-event-fill fs-1"></i>
+                        <div class="fs-3 fw-bold">{{ equipo.contar_partidos_jugados }}</div>
+                        <div>Partidos</div>
+                    </div>
+                </div>
+            </div>
+
+            <ul class="nav nav-tabs" id="equipoTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="miembros-tab" data-bs-toggle="tab" data-bs-target="#miembros" type="button" role="tab">
+                        <i class="bi bi-people-fill"></i> Miembros
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="partidos-tab" data-bs-toggle="tab" data-bs-target="#partidos" type="button" role="tab">
+                        <i class="bi bi-calendar-event"></i> Partidos
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content mt-3" id="equipoTabContent">
+                <div class="tab-pane fade show active" id="miembros" role="tabpanel">
+                    {% if es_anfitrion or es_capitan %}
+                    <div class="mb-3">
+                        <a href="{% url 'competitiva:invitar_miembro' equipo.id_equipo %}" class="btn btn-success btn-sm">
+                            <i class="bi bi-person-plus-fill"></i> Invitar Miembro
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        {% for miembro in miembros %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        {% if miembro.id_usuario.foto_perfil %}
+                                            <img src="{{ miembro.id_usuario.foto_perfil.url }}" alt="{{ miembro.id_usuario.nombre }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; font-size: 20px;">
+                                                {{ miembro.id_usuario.nombre.0 }}{{ miembro.id_usuario.apellido.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">
+                                                {{ miembro.id_usuario.nombre }} {{ miembro.id_usuario.apellido }}
+                                                {% if miembro.numero_camiseta %}
+                                                    <span class="badge bg-secondary">#{{ miembro.numero_camiseta }}</span>
+                                                {% endif %}
+                                            </h6>
+                                            <small class="text-muted">
+                                                {% if miembro.rol == 'anfitrion' %}
+                                                    <i class="bi bi-star-fill text-warning"></i> Anfitrión
+                                                {% elif miembro.rol == 'capitan' %}
+                                                    <i class="bi bi-shield-fill text-primary"></i> Capitán
+                                                {% else %}
+                                                    <i class="bi bi-person-fill"></i> Jugador
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        <a href="{% url 'ver_perfil_usuario' miembro.id_usuario.id_usuario %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="partidos" role="tabpanel">
+                    {% if es_anfitrion or es_capitan %}
+                    <div class="mb-3">
+                        <a href="{% url 'competitiva:crear_partido_competitivo' equipo.id_equipo %}" class="btn btn-success btn-sm">
+                            <i class="bi bi-plus-circle-fill"></i> Crear Partido
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if partidos %}
+                    <div class="list-group">
+                        {% for partido in partidos %}
+                        <a href="{% url 'competitiva:detalle_partido' partido.id_partido %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ partido.id_equipo_local.nombre }} vs {{ partido.id_equipo_visitante.nombre }}</h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar3"></i> {{ partido.fecha_hora|date:"d/m/Y H:i" }}
+                                    </small>
+                                </div>
+                                <div>
+                                    {% if partido.estado == 'finalizado' %}
+                                        <span class="badge bg-success">{{ partido.resultado }}</span>
+                                    {% elif partido.estado == 'en_curso' %}
+                                        <span class="badge bg-warning">En Curso</span>
+                                    {% else %}
+                                        <span class="badge bg-info">Programado</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> No hay partidos registrados
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if user.is_authenticated %}
+            <div class="mt-4">
+                {% if invitacion_pendiente %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-clock"></i> Tienes una invitación pendiente para este equipo
+                        <a href="{% url 'competitiva:mis_invitaciones' %}" class="btn btn-sm btn-warning ms-2">Ver Invitaciones</a>
+                    </div>
+                {% elif es_miembro and not es_anfitrion %}
+                    <form method="post" action="{% url 'competitiva:salir_equipo' equipo.id_equipo %}" onsubmit="return confirm('¿Estás seguro de que quieres salir del equipo?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-box-arrow-right"></i> Salir del Equipo
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
