@@ -22,11 +22,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . /app/
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Create necessary directories
+RUN mkdir -p /app/staticfiles /app/media
 
-# Expose port
+# Don't collect static files during build (Railway will do it at runtime)
+# RUN python manage.py collectstatic --noinput
+
+# Expose port (Railway uses PORT env variable)
 EXPOSE 8000
 
-# Run gunicorn
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+# Run gunicorn (use $PORT for Railway compatibility)
+CMD python manage.py collectstatic --noinput && python manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 3
