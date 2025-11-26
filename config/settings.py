@@ -37,6 +37,15 @@ RAILWAY_PUBLIC_DOMAIN = os.getenv('RAILWAY_PUBLIC_DOMAIN', '')
 if RAILWAY_PUBLIC_DOMAIN and RAILWAY_PUBLIC_DOMAIN not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
 
+# Allow Railway static domain
+RAILWAY_STATIC_URL = os.getenv('RAILWAY_STATIC_URL', '')
+if RAILWAY_STATIC_URL and RAILWAY_STATIC_URL not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RAILWAY_STATIC_URL)
+
+# Allow all hosts in production if needed (not recommended for security, but helps debug)
+if not DEBUG and not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['*']
+
 # CSRF and Security settings for production
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if os.getenv('CSRF_TRUSTED_ORIGINS') else []
 
@@ -135,11 +144,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+
+# Solo incluir STATICFILES_DIRS si el directorio 'static' existe y no causa conflictos
+if os.path.exists(BASE_DIR / 'static'):
+    STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Whitenoise configuration for static files in production
 STORAGES = {
