@@ -9,7 +9,7 @@
             <h1 class="card-title h4 mb-0">
                 <i class="bi bi-building text-primary"></i> Gestión de Recintos
             </h1>
-            <a href="{% url 'canchas:crear_recinto' %}" class="btn btn-primary btn-sm">
+            <a href="{% url 'crear_recinto' %}" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus-circle"></i> Crear Recinto
             </a>
         </div>
@@ -45,7 +45,7 @@
                     </td>
                     <td class="text-center">
                         <div class="btn-group btn-group-sm" role="group">
-                            <a href="{% url 'canchas:editar_recinto' recinto.id_recinto %}" 
+                            <a href="{% url 'editar_recinto' recinto.id_recinto %}" 
                                class="btn btn-outline-primary" 
                                title="Editar">
                                 <i class="bi bi-pencil"></i>
@@ -66,12 +66,12 @@
 {% else %}
     <div class="alert alert-info small" role="alert">
         <i class="bi bi-info-circle"></i> No hay recintos registrados. 
-        <a href="{% url 'canchas:crear_recinto' %}" class="alert-link">Crea el primero</a>.
+        <a href="{% url 'crear_recinto' %}" class="alert-link">Crea el primero</a>.
     </div>
 {% endif %}
 
 <div class="mt-3">
-    <a href="{% url 'canchas:lista_canchas' %}" class="btn btn-outline-secondary btn-sm">
+    <a href="{% url 'lista_canchas' %}" class="btn btn-outline-secondary btn-sm">
         <i class="bi bi-arrow-left"></i> Volver a Canchas
     </a>
 </div>

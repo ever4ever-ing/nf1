@@ -11,10 +11,10 @@
         </h1>
         {% if user.is_authenticated %}
         <div>
-            <a href="{% url 'competitiva:mis_equipos' %}" class="btn btn-info">
+            <a href="{% url 'competitiva_mis_equipos' %}" class="btn btn-info">
                 <i class="bi bi-people-fill"></i> Mis Equipos
             </a>
-            <a href="{% url 'competitiva:crear_equipo' %}" class="btn btn-success">
+            <a href="{% url 'competitiva_crear_equipo' %}" class="btn btn-success">
                 <i class="bi bi-plus-circle-fill"></i> Crear Equipo
             </a>
         </div>
@@ -60,7 +60,7 @@
                     </div>
                 </div>
                 <div class="card-footer bg-light">
-                    <a href="{% url 'competitiva:detalle_equipo' equipo.id_equipo %}" class="btn btn-sm btn-primary w-100">
+                    <a href="{% url 'competitiva_detalle_equipo' equipo.id_equipo %}" class="btn btn-sm btn-primary w-100">
                         <i class="bi bi-eye-fill"></i> Ver Equipo
                     </a>
                 </div>
@@ -74,7 +74,7 @@
         <h4>No hay equipos registrados</h4>
         <p class="text-muted">Sé el primero en crear un equipo competitivo</p>
         {% if user.is_authenticated %}
-        <a href="{% url 'competitiva:crear_equipo' %}" class="btn btn-success mt-3">
+        <a href="{% url 'competitiva_crear_equipo' %}" class="btn btn-success mt-3">
             <i class="bi bi-plus-circle-fill"></i> Crear Equipo
         </a>
         {% endif %}

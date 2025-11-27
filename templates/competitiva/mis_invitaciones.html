@@ -20,10 +20,10 @@
                     <small class="text-muted"><i class="bi bi-calendar3"></i> {{ invitacion.fecha_invitacion|date:"d/m/Y H:i" }}</small>
                 </div>
                 <div class="d-flex gap-2">
-                    <a href="{% url 'competitiva:responder_invitacion' invitacion.id_invitacion 'aceptar' %}" class="btn btn-success">
+                    <a href="{% url 'competitiva_responder_invitacion' invitacion.id_invitacion 'aceptar' %}" class="btn btn-success">
                         <i class="bi bi-check-circle"></i> Aceptar
                     </a>
-                    <a href="{% url 'competitiva:responder_invitacion' invitacion.id_invitacion 'rechazar' %}" class="btn btn-danger">
+                    <a href="{% url 'competitiva_responder_invitacion' invitacion.id_invitacion 'rechazar' %}" class="btn btn-danger">
                         <i class="bi bi-x-circle"></i> Rechazar
                     </a>
                 </div>

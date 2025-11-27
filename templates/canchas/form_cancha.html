@@ -42,7 +42,7 @@
                 {% endif %}
                 <div class="form-text">
                     <i class="bi bi-info-circle"></i> Si no encuentras el recinto, 
-                    <a href="{% url 'canchas:crear_recinto' %}" target="_blank">créalo primero</a>.
+                    <a href="{% url 'crear_recinto' %}" target="_blank">créalo primero</a>.
                 </div>
             </div>
             
@@ -62,7 +62,7 @@
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-save"></i> Guardar Cancha
                 </button>
-                <a href="{% url 'canchas:lista_canchas' %}" class="btn btn-outline-secondary">
+                <a href="{% url 'lista_canchas' %}" class="btn btn-outline-secondary">
                     <i class="bi bi-x-circle"></i> Cancelar
                 </a>
             </div>

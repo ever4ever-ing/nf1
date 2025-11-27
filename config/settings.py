@@ -59,9 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'eventos',
-    'competitiva',
-    'canchas',
+    'eventos',  # única app unificada
 ]
 
 MIDDLEWARE = [

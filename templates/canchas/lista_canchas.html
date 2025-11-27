@@ -27,10 +27,10 @@
             <h1 class="card-title h4 mb-0"><i class="bi bi-diagram-3 text-primary"></i> Canchas Disponibles</h1>
             {% if user.is_staff %}
             <div class="btn-group btn-group-sm" role="group">
-                <a href="{% url 'canchas:crear_cancha' %}" class="btn btn-primary">
+                <a href="{% url 'crear_cancha' %}" class="btn btn-primary">
                     <i class="bi bi-plus-circle"></i> Nueva Cancha
                 </a>
-                <a href="{% url 'canchas:lista_recintos' %}" class="btn btn-outline-primary">
+                <a href="{% url 'lista_recintos' %}" class="btn btn-outline-primary">
                     <i class="bi bi-building"></i> Recintos
                 </a>
             </div>
@@ -80,7 +80,7 @@
             </div>
             {% if localidad_filtro or recinto_filtro or tipo_filtro %}
             <div class="mt-2">
-                <a href="{% url 'canchas:lista_canchas' %}" class="btn btn-outline-secondary btn-sm">
+                <a href="{% url 'lista_canchas' %}" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-x-circle"></i> Limpiar filtros
                 </a>
             </div>
@@ -127,7 +127,7 @@
                                 <i class="bi bi-calendar-check"></i> Próximamente: Reservar
                             </button>
                             {% if user.is_staff %}
-                            <a href="{% url 'canchas:editar_cancha' cancha.id_cancha %}" 
+                            <a href="{% url 'editar_cancha' cancha.id_cancha %}" 
                                class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-pencil"></i> Editar
                             </a>

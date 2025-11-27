@@ -22,7 +22,7 @@
             </div>
             {% if es_anfitrion %}
             <div>
-                <a href="{% url 'competitiva:editar_equipo' equipo.id_equipo %}" class="btn btn-light">
+                <a href="{% url 'competitiva_editar_equipo' equipo.id_equipo %}" class="btn btn-light">
                     <i class="bi bi-pencil-fill"></i> Editar
                 </a>
             </div>
@@ -78,7 +78,7 @@
                 <div class="tab-pane fade show active" id="miembros" role="tabpanel">
                     {% if es_anfitrion or es_capitan %}
                     <div class="mb-3">
-                        <a href="{% url 'competitiva:invitar_miembro' equipo.id_equipo %}" class="btn btn-success btn-sm">
+                        <a href="{% url 'competitiva_invitar_miembro' equipo.id_equipo %}" class="btn btn-success btn-sm">
                             <i class="bi bi-person-plus-fill"></i> Invitar Miembro
                         </a>
                     </div>
@@ -128,7 +128,7 @@
                 <div class="tab-pane fade" id="partidos" role="tabpanel">
                     {% if es_anfitrion or es_capitan %}
                     <div class="mb-3">
-                        <a href="{% url 'competitiva:crear_partido_competitivo' equipo.id_equipo %}" class="btn btn-success btn-sm">
+                        <a href="{% url 'competitiva_crear_partido_competitivo' equipo.id_equipo %}" class="btn btn-success btn-sm">
                             <i class="bi bi-plus-circle-fill"></i> Crear Partido
                         </a>
                     </div>
@@ -137,7 +137,7 @@
                     {% if partidos %}
                     <div class="list-group">
                         {% for partido in partidos %}
-                        <a href="{% url 'competitiva:detalle_partido' partido.id_partido %}" class="list-group-item list-group-item-action">
+                        <a href="{% url 'competitiva_detalle_partido' partido.id_partido %}" class="list-group-item list-group-item-action">
                             <div class="d-flex w-100 justify-content-between align-items-center">
                                 <div>
                                     <h6 class="mb-1">{{ partido.id_equipo_local.nombre }} vs {{ partido.id_equipo_visitante.nombre }}</h6>
@@ -171,10 +171,10 @@
                 {% if invitacion_pendiente %}
                     <div class="alert alert-warning">
                         <i class="bi bi-clock"></i> Tienes una invitación pendiente para este equipo
-                        <a href="{% url 'competitiva:mis_invitaciones' %}" class="btn btn-sm btn-warning ms-2">Ver Invitaciones</a>
+                        <a href="{% url 'competitiva_mis_invitaciones' %}" class="btn btn-sm btn-warning ms-2">Ver Invitaciones</a>
                     </div>
                 {% elif es_miembro and not es_anfitrion %}
-                    <form method="post" action="{% url 'competitiva:salir_equipo' equipo.id_equipo %}" onsubmit="return confirm('¿Estás seguro de que quieres salir del equipo?');">
+                    <form method="post" action="{% url 'competitiva_salir_equipo' equipo.id_equipo %}" onsubmit="return confirm('¿Estás seguro de que quieres salir del equipo?');">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger">
                             <i class="bi bi-box-arrow-right"></i> Salir del Equipo

@@ -22,8 +22,6 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('eventos.urls')),
-    path('competitiva/', include('competitiva.urls')),
-    path('canchas/', include('canchas.urls')),
 ]
 
 # Servir archivos media en desarrollo

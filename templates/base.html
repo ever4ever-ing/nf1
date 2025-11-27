@@ -27,14 +27,14 @@
                         <a class="nav-link" href="{% url 'lista_partidos' %}"><i class="bi bi-calendar-event"></i> Partidos Friendly</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'canchas:lista_canchas' %}"><i class="bi bi-diagram-3"></i> Canchas</a>
+                        <a class="nav-link" href="{% url 'lista_canchas' %}"><i class="bi bi-diagram-3"></i> Canchas</a>
                     </li>
                     {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'competitiva:lista_equipos' %}"><i class="bi bi-shield-fill"></i> Equipos</a>
+                        <a class="nav-link" href="{% url 'competitiva_lista_equipos' %}"><i class="bi bi-shield-fill"></i> Equipos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'competitiva:lista_partidos' %}"><i class="bi bi-trophy-fill"></i> Competitivo</a>
+                        <a class="nav-link" href="{% url 'competitiva_lista_partidos' %}"><i class="bi bi-trophy-fill"></i> Competitivo</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'ranking_usuarios' %}"><i class="bi bi-star-fill"></i> Ranking</a>

@@ -3,7 +3,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from .models import Partido, Localidad, ParticipantePartido, Reserva, MensajePartido, Notificacion, Usuario
+from .models import Partido, Localidad, ParticipantePartido, Reserva, MensajePartido, Notificacion, Usuario, Recinto, Cancha, Equipo, MiembroEquipo, PartidoCompetitivo, InvitacionEquipo
 from django.db.models import Count, Q
 from .forms import LoginForm, RegistroForm, MensajePartidoForm, PartidoForm
 from django.http import JsonResponse
@@ -489,4 +489,241 @@ def cancelar_partido(request, partido_id):
         'partido': partido,
     }
     return render(request, 'cancelar_partido.html', context)
+
+# ------------------------
+# Vistas integradas de canchas (simplificadas)
+# ------------------------
+from django.contrib.admin.views.decorators import staff_member_required
+from .forms import RecintoForm, CanchaForm
+
+@staff_member_required
+def lista_canchas(request):
+    localidades = Localidad.objects.all().order_by('nombre')
+    recinto_filtro = request.GET.get('recinto')
+    localidad_filtro = request.GET.get('localidad')
+    tipo_filtro = request.GET.get('tipo')
+    canchas = Cancha.objects.select_related('id_recinto__id_localidad').all()
+    if localidad_filtro:
+        canchas = canchas.filter(id_recinto__id_localidad__id_localidad=localidad_filtro)
+    if recinto_filtro:
+        canchas = canchas.filter(id_recinto__id_recinto=recinto_filtro)
+    if tipo_filtro:
+        canchas = canchas.filter(tipo=tipo_filtro)
+    recintos = Recinto.objects.select_related('id_localidad').all().order_by('nombre')
+    tipos = Cancha.objects.values_list('tipo', flat=True).distinct().exclude(tipo__isnull=True)
+    return render(request, 'canchas/lista_canchas.html', {
+        'canchas': canchas,
+        'localidades': localidades,
+        'recintos': recintos,
+        'tipos': tipos,
+        'localidad_filtro': localidad_filtro,
+        'recinto_filtro': recinto_filtro,
+        'tipo_filtro': tipo_filtro,
+    })
+
+@staff_member_required
+def lista_recintos(request):
+    recintos = Recinto.objects.select_related('id_localidad').all().order_by('nombre')
+    return render(request, 'canchas/lista_recintos.html', {'recintos': recintos})
+
+@staff_member_required
+def crear_recinto(request):
+    if request.method == 'POST':
+        form = RecintoForm(request.POST)
+        if form.is_valid():
+            recinto = form.save()
+            messages.success(request, f'Recinto "{recinto.nombre}" creado.')
+            return redirect('lista_recintos')
+    else:
+        form = RecintoForm()
+    return render(request, 'canchas/form_recinto.html', {'form': form, 'titulo': 'Crear Nuevo Recinto'})
+
+@staff_member_required
+def editar_recinto(request, pk):
+    recinto = get_object_or_404(Recinto, pk=pk)
+    if request.method == 'POST':
+        form = RecintoForm(request.POST, instance=recinto)
+        if form.is_valid():
+            recinto = form.save()
+            messages.success(request, f'Recinto "{recinto.nombre}" actualizado.')
+            return redirect('lista_recintos')
+    else:
+        form = RecintoForm(instance=recinto)
+    return render(request, 'canchas/form_recinto.html', {'form': form, 'titulo': f'Editar Recinto: {recinto.nombre}', 'recinto': recinto})
+
+@staff_member_required
+def crear_cancha(request):
+    if request.method == 'POST':
+        form = CanchaForm(request.POST)
+        if form.is_valid():
+            cancha = form.save()
+            messages.success(request, f'Cancha "{cancha.nombre}" creada.')
+            return redirect('lista_canchas')
+    else:
+        form = CanchaForm()
+    return render(request, 'canchas/form_cancha.html', {'form': form, 'titulo': 'Crear Nueva Cancha'})
+
+@staff_member_required
+def editar_cancha(request, pk):
+    cancha = get_object_or_404(Cancha, pk=pk)
+    if request.method == 'POST':
+        form = CanchaForm(request.POST, instance=cancha)
+        if form.is_valid():
+            cancha = form.save()
+            messages.success(request, f'Cancha "{cancha.nombre}" actualizada.')
+            return redirect('lista_canchas')
+    else:
+        form = CanchaForm(instance=cancha)
+    return render(request, 'canchas/form_cancha.html', {'form': form, 'titulo': f'Editar Cancha: {cancha.nombre}', 'cancha': cancha})
+
+# ------------------------
+# Vistas integradas competitiva (simplificadas)
+# ------------------------
+from .forms import EquipoForm, PartidoCompetitivoForm
+from django.db.models import Count, Q as DJQ
+from django.utils import timezone
+
+def lista_equipos(request):
+    equipos = Equipo.objects.filter(activo=True).annotate(num_miembros=Count('miembros')).order_by('-fecha_creacion')
+    return render(request, 'competitiva/lista_equipos.html', {'equipos': equipos})
+
+def detalle_equipo(request, equipo_id):
+    equipo = get_object_or_404(Equipo.objects.prefetch_related('miembros__id_usuario'), id_equipo=equipo_id)
+    miembros = equipo.miembros.filter(activo=True).select_related('id_usuario')
+    partidos = PartidoCompetitivo.objects.filter(DJQ(id_equipo_local=equipo) | DJQ(id_equipo_visitante=equipo)).select_related('id_equipo_local', 'id_equipo_visitante').order_by('-fecha_hora')[:10]
+    es_miembro = False
+    es_anfitrion = False
+    invitacion_pendiente = None
+    if request.user.is_authenticated:
+        es_miembro = miembros.filter(id_usuario=request.user).exists()
+        es_anfitrion = equipo.id_anfitrion == request.user
+        invitacion_pendiente = InvitacionEquipo.objects.filter(id_equipo=equipo, id_usuario=request.user, estado='pendiente').first()
+    return render(request, 'competitiva/detalle_equipo.html', {
+        'equipo': equipo,
+        'miembros': miembros,
+        'partidos': partidos,
+        'es_miembro': es_miembro,
+        'es_anfitrion': es_anfitrion,
+        'invitacion_pendiente': invitacion_pendiente,
+    })
+
+@login_required
+def crear_equipo(request):
+    if request.method == 'POST':
+        form = EquipoForm(request.POST, request.FILES)
+        if form.is_valid():
+            equipo = form.save(commit=False)
+            equipo.id_anfitrion = request.user
+            equipo.save()
+            MiembroEquipo.objects.create(id_equipo=equipo, id_usuario=request.user, rol='anfitrion')
+            messages.success(request, f'Equipo "{equipo.nombre}" creado.')
+            return redirect('competitiva_detalle_equipo', equipo_id=equipo.id_equipo)
+    else:
+        form = EquipoForm()
+    return render(request, 'competitiva/crear_equipo.html', {'form': form})
+
+@login_required
+def editar_equipo(request, equipo_id):
+    equipo = get_object_or_404(Equipo, id_equipo=equipo_id)
+    if equipo.id_anfitrion != request.user:
+        messages.error(request, 'No tienes permiso para editar este equipo.')
+        return redirect('competitiva_detalle_equipo', equipo_id=equipo_id)
+    if request.method == 'POST':
+        form = EquipoForm(request.POST, request.FILES, instance=equipo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Equipo actualizado.')
+            return redirect('competitiva_detalle_equipo', equipo_id=equipo_id)
+    else:
+        form = EquipoForm(instance=equipo)
+    return render(request, 'competitiva/editar_equipo.html', {'form': form, 'equipo': equipo})
+
+@login_required
+def invitar_miembro(request, equipo_id):
+    equipo = get_object_or_404(Equipo, id_equipo=equipo_id)
+    miembro = MiembroEquipo.objects.filter(id_equipo=equipo, id_usuario=request.user, rol__in=['anfitrion', 'capitan']).first()
+    if not miembro:
+        messages.error(request, 'No tienes permiso para invitar miembros.')
+        return redirect('competitiva_detalle_equipo', equipo_id=equipo_id)
+    if request.method == 'POST':
+        usuario_id = request.POST.get('id_usuario')
+        mensaje_texto = request.POST.get('mensaje', '')
+        usuario = get_object_or_404(Usuario, id_usuario=usuario_id)
+        if MiembroEquipo.objects.filter(id_equipo=equipo, id_usuario=usuario).exists():
+            messages.warning(request, 'Este usuario ya es miembro.')
+            return redirect('competitiva_detalle_equipo', equipo_id=equipo_id)
+        InvitacionEquipo.objects.get_or_create(id_equipo=equipo, id_usuario=usuario, defaults={'id_invitador': request.user, 'mensaje': mensaje_texto})
+        messages.success(request, f'Invitación enviada a {usuario.nombre}.')
+        return redirect('competitiva_detalle_equipo', equipo_id=equipo_id)
+    miembros_ids = equipo.miembros.values_list('id_usuario', flat=True)
+    usuarios_disponibles = Usuario.objects.filter(is_active=True).exclude(id_usuario__in=miembros_ids)
+    return render(request, 'competitiva/invitar_miembro.html', {'equipo': equipo, 'usuarios_disponibles': usuarios_disponibles})
+
+@login_required
+def mis_invitaciones(request):
+    invitaciones = InvitacionEquipo.objects.filter(id_usuario=request.user, estado='pendiente').select_related('id_equipo', 'id_invitador')
+    return render(request, 'competitiva/mis_invitaciones.html', {'invitaciones': invitaciones})
+
+@login_required
+def responder_invitacion(request, invitacion_id, accion):
+    invitacion = get_object_or_404(InvitacionEquipo, id_invitacion=invitacion_id, id_usuario=request.user, estado='pendiente')
+    if accion == 'aceptar':
+        invitacion.estado = 'aceptada'
+        invitacion.fecha_respuesta = timezone.now()
+        invitacion.save()
+        MiembroEquipo.objects.create(id_equipo=invitacion.id_equipo, id_usuario=request.user, rol='jugador')
+        messages.success(request, f'Te has unido a {invitacion.id_equipo.nombre}.')
+    elif accion == 'rechazar':
+        invitacion.estado = 'rechazada'
+        invitacion.fecha_respuesta = timezone.now()
+        invitacion.save()
+        messages.info(request, 'Invitación rechazada.')
+    return redirect('competitiva_mis_invitaciones')
+
+@login_required
+def salir_equipo(request, equipo_id):
+    equipo = get_object_or_404(Equipo, id_equipo=equipo_id)
+    if equipo.id_anfitrion == request.user:
+        messages.error(request, 'El anfitrión no puede salir del equipo.')
+        return redirect('competitiva_detalle_equipo', equipo_id=equipo_id)
+    miembro = MiembroEquipo.objects.filter(id_equipo=equipo, id_usuario=request.user).first()
+    if miembro:
+        miembro.delete()
+        messages.success(request, f'Has salido de {equipo.nombre}.')
+    return redirect('competitiva_lista_equipos')
+
+def lista_partidos_competitivos(request):
+    partidos = PartidoCompetitivo.objects.select_related('id_equipo_local', 'id_equipo_visitante', 'id_localidad').order_by('-fecha_hora')[:50]
+    return render(request, 'competitiva/lista_partidos.html', {'partidos': partidos})
+
+def detalle_partido_competitivo(request, partido_id):
+    partido = get_object_or_404(PartidoCompetitivo.objects.select_related('id_equipo_local', 'id_equipo_visitante', 'id_cancha', 'id_localidad'), id_partido=partido_id)
+    estadisticas = partido.estadisticas.select_related('id_usuario', 'id_equipo')
+    return render(request, 'competitiva/detalle_partido.html', {'partido': partido, 'estadisticas': estadisticas})
+
+@login_required
+def crear_partido_competitivo(request, equipo_id):
+    equipo_local = get_object_or_404(Equipo, id_equipo=equipo_id)
+    miembro = MiembroEquipo.objects.filter(id_equipo=equipo_local, id_usuario=request.user, rol__in=['anfitrion', 'capitan']).first()
+    if not miembro:
+        messages.error(request, 'No tienes permiso para crear partidos para este equipo.')
+        return redirect('competitiva_detalle_equipo', equipo_id=equipo_id)
+    if request.method == 'POST':
+        form = PartidoCompetitivoForm(request.POST)
+        if form.is_valid():
+            partido = form.save(commit=False)
+            partido.id_equipo_local = equipo_local
+            partido.id_creador = request.user
+            partido.save()
+            messages.success(request, 'Partido creado.')
+            return redirect('competitiva_detalle_partido', partido_id=partido.id_partido)
+    else:
+        form = PartidoCompetitivoForm()
+        form.fields['id_equipo_visitante'].queryset = Equipo.objects.filter(activo=True).exclude(id_equipo=equipo_id)
+    return render(request, 'competitiva/crear_partido.html', {'form': form, 'equipo_local': equipo_local})
+
+@login_required
+def mis_equipos(request):
+    equipos = Equipo.objects.filter(miembros__id_usuario=request.user, miembros__activo=True).distinct().annotate(num_miembros=Count('miembros'))
+    return render(request, 'competitiva/mis_equipos.html', {'equipos': equipos})
 

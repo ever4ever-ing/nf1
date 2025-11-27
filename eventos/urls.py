@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+# Unificación de rutas de canchas y competitiva dentro de eventos
+
 urlpatterns = [
     path('', views.index, name='index'),
     path('home/', views.home, name='home'),
@@ -23,4 +25,24 @@ urlpatterns = [
     path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
     path('usuario/<int:usuario_id>/', views.ver_perfil_usuario, name='ver_perfil_usuario'),
     path('ranking/', views.ranking_usuarios, name='ranking_usuarios'),
+    # --- Rutas integradas de canchas ---
+    path('canchas/', views.lista_canchas, name='lista_canchas'),
+    path('canchas/recintos/', views.lista_recintos, name='lista_recintos'),
+    path('canchas/recintos/crear/', views.crear_recinto, name='crear_recinto'),
+    path('canchas/recintos/editar/<int:pk>/', views.editar_recinto, name='editar_recinto'),
+    path('canchas/crear/', views.crear_cancha, name='crear_cancha'),
+    path('canchas/editar/<int:pk>/', views.editar_cancha, name='editar_cancha'),
+    # --- Rutas integradas competitiva ---
+    path('competitiva/equipos/', views.lista_equipos, name='competitiva_lista_equipos'),
+    path('competitiva/equipos/crear/', views.crear_equipo, name='competitiva_crear_equipo'),
+    path('competitiva/equipos/<int:equipo_id>/', views.detalle_equipo, name='competitiva_detalle_equipo'),
+    path('competitiva/equipos/<int:equipo_id>/editar/', views.editar_equipo, name='competitiva_editar_equipo'),
+    path('competitiva/equipos/<int:equipo_id>/invitar/', views.invitar_miembro, name='competitiva_invitar_miembro'),
+    path('competitiva/equipos/<int:equipo_id>/salir/', views.salir_equipo, name='competitiva_salir_equipo'),
+    path('competitiva/equipos/<int:equipo_id>/crear-partido/', views.crear_partido_competitivo, name='competitiva_crear_partido_competitivo'),
+    path('competitiva/mis-equipos/', views.mis_equipos, name='competitiva_mis_equipos'),
+    path('competitiva/invitaciones/', views.mis_invitaciones, name='competitiva_mis_invitaciones'),
+    path('competitiva/invitaciones/<int:invitacion_id>/<str:accion>/', views.responder_invitacion, name='competitiva_responder_invitacion'),
+    path('competitiva/partidos/', views.lista_partidos_competitivos, name='competitiva_lista_partidos'),
+    path('competitiva/partidos/<int:partido_id>/', views.detalle_partido_competitivo, name='competitiva_detalle_partido'),
 ]
