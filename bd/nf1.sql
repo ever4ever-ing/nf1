@@ -15,8 +15,8 @@ CREATE TABLE usuarios (
 CREATE TABLE localidades (
     id_localidad SERIAL PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL
 );
 
 -- Insertar todas las localidades de Chile
@@ -70,8 +70,8 @@ CREATE TABLE recintos (
     nombre VARCHAR(100) NOT NULL,
     direccion TEXT NOT NULL,
     id_localidad BIGINT UNSIGNED NOT NULL, -- Cambiado a BIGINT UNSIGNED
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (id_localidad) REFERENCES localidades(id_localidad)
 );
 
@@ -80,8 +80,8 @@ CREATE TABLE canchas (
     nombre VARCHAR(100) NOT NULL,
     id_recinto BIGINT UNSIGNED NOT NULL,
     tipo VARCHAR(50),
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (id_recinto) REFERENCES recintos(id_recinto)
 );
 
@@ -93,8 +93,8 @@ CREATE TABLE reservas (
     fecha_reserva TIMESTAMP NOT NULL,
     hora_inicio TIME NOT NULL, -- Nueva columna para la hora de inicio
     hora_fin TIME NOT NULL, -- Nueva columna para la hora de fin
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (id_cancha) REFERENCES canchas(id_cancha),
     FOREIGN KEY (id_recinto) REFERENCES recintos(id_recinto),
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
