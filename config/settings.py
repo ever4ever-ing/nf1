@@ -147,9 +147,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Solo incluir STATICFILES_DIRS si el directorio 'static' existe y no causa conflictos
-if os.path.exists(BASE_DIR / 'static'):
-    STATICFILES_DIRS = [BASE_DIR / 'static']
+# No necesitamos STATICFILES_DIRS porque Django busca automáticamente
+# en las carpetas static/ de cada app (eventos/static/, competitiva/static/, etc.)
 
 # Whitenoise configuration for static files in production
 STORAGES = {

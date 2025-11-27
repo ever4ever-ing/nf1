@@ -8,6 +8,9 @@ from django.db.models import Count, Q
 from .forms import LoginForm, RegistroForm, MensajePartidoForm, PartidoForm
 from django.http import JsonResponse
 
+def index(request):
+    """Vista de índice que redirige a la página principal"""
+    return render(request, 'index.html')
 
 def home(request):
     """Vista principal que muestra los próximos partidos"""
