@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Reserva - NF1 Eventos{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h1 class="card-title h4 mb-4">
+                <i class="bi bi-calendar-check text-success"></i> Crear Reserva de Cancha
+            </h1>
+            
+            <div class="alert alert-info small mb-4" role="alert">
+                <i class="bi bi-info-circle"></i> 
+                <strong>Instrucciones:</strong> Selecciona la cancha, fecha y horario deseados. 
+                El sistema validará que el horario esté disponible según los bloques configurados.
+            </div>
+            
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.id_cancha.id_for_label }}" class="form-label">
+                            <i class="bi bi-diagram-3"></i> {{ form.id_cancha.label }}
+                        </label>
+                        {{ form.id_cancha }}
+                        {% if form.id_cancha.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.id_cancha.errors }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text small">
+                            <a href="{% url 'disponibilidad_cancha' %}" target="_blank">
+                                <i class="bi bi-calendar3"></i> Ver disponibilidad de canchas
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.fecha_reserva.id_for_label }}" class="form-label">
+                            <i class="bi bi-calendar-event"></i> {{ form.fecha_reserva.label }}
+                        </label>
+                        {{ form.fecha_reserva }}
+                        {% if form.fecha_reserva.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.fecha_reserva.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.hora_inicio.id_for_label }}" class="form-label">
+                            <i class="bi bi-clock"></i> {{ form.hora_inicio.label }}
+                        </label>
+                        {{ form.hora_inicio }}
+                        {% if form.hora_inicio.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.hora_inicio.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.hora_fin.id_for_label }}" class="form-label">
+                            <i class="bi bi-clock-fill"></i> {{ form.hora_fin.label }}
+                        </label>
+                        {{ form.hora_fin }}
+                        {% if form.hora_fin.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.hora_fin.errors }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text small">
+                            <i class="bi bi-info-circle"></i> Duración permitida: entre 30 minutos y 4 horas.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.notas.id_for_label }}" class="form-label">
+                        <i class="bi bi-sticky"></i> {{ form.notas.label }}
+                    </label>
+                    {{ form.notas }}
+                    {% if form.notas.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.notas.errors }}
+                        </div>
+                    {% endif %}
+                    <div class="form-text small">
+                        <i class="bi bi-lightbulb"></i> Agrega información adicional sobre tu reserva (opcional).
+                    </div>
+                </div>
+
+                <div id="verificacion-disponibilidad" class="alert alert-secondary" style="display: none;">
+                    <i class="bi bi-hourglass-split"></i> Verificando disponibilidad...
+                </div>
+                
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Crear Reserva
+                    </button>
+                    <a href="{% url 'disponibilidad_cancha' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const canchaSelect = document.getElementById('{{ form.id_cancha.id_for_label }}');
+    const fechaInput = document.getElementById('{{ form.fecha_reserva.id_for_label }}');
+    const horaInicioInput = document.getElementById('{{ form.hora_inicio.id_for_label }}');
+    const horaFinInput = document.getElementById('{{ form.hora_fin.id_for_label }}');
+    const verificacionDiv = document.getElementById('verificacion-disponibilidad');
+
+    function verificarDisponibilidad() {
+        const canchaId = canchaSelect.value;
+        const fecha = fechaInput.value;
+        const inicio = horaInicioInput.value;
+        const fin = horaFinInput.value;
+
+        if (!canchaId || !fecha || !inicio || !fin) {
+            verificacionDiv.style.display = 'none';
+            return;
+        }
+
+        verificacionDiv.style.display = 'block';
+        verificacionDiv.className = 'alert alert-secondary';
+        verificacionDiv.innerHTML = '<i class="bi bi-hourglass-split"></i> Verificando disponibilidad...';
+
+        // Calcular duración
+        const [h1, m1] = inicio.split(':').map(Number);
+        const [h2, m2] = fin.split(':').map(Number);
+        const duracionMinutos = (h2 * 60 + m2) - (h1 * 60 + m1);
+
+        if (duracionMinutos < 30) {
+            verificacionDiv.className = 'alert alert-danger';
+            verificacionDiv.innerHTML = '<i class="bi bi-x-circle"></i> La duración mínima es 30 minutos.';
+            return;
+        }
+
+        if (duracionMinutos > 240) {
+            verificacionDiv.className = 'alert alert-danger';
+            verificacionDiv.innerHTML = '<i class="bi bi-x-circle"></i> La duración máxima es 4 horas.';
+            return;
+        }
+
+        // AJAX para verificar disponibilidad
+        fetch(`/eventos/api/horarios-disponibles/?cancha_id=${canchaId}&fecha=${fecha}&duracion=${duracionMinutos}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.horarios && data.horarios.length > 0) {
+                    const horarioDisponible = data.horarios.some(h => {
+                        return h.hora_inicio <= inicio && h.hora_fin >= fin;
+                    });
+
+                    if (horarioDisponible) {
+                        verificacionDiv.className = 'alert alert-success';
+                        verificacionDiv.innerHTML = '<i class="bi bi-check-circle"></i> ¡Horario disponible! Duración: ' + duracionMinutos + ' minutos (' + Math.floor(duracionMinutos/60) + 'h ' + (duracionMinutos%60) + 'min).';
+                    } else {
+                        verificacionDiv.className = 'alert alert-danger';
+                        verificacionDiv.innerHTML = '<i class="bi bi-x-circle"></i> El horario seleccionado no está dentro de un bloque disponible. <a href="/eventos/disponibilidad-cancha/?cancha_id=' + canchaId + '" target="_blank">Ver horarios disponibles</a>';
+                    }
+                } else {
+                    verificacionDiv.className = 'alert alert-danger';
+                    verificacionDiv.innerHTML = '<i class="bi bi-x-circle"></i> No hay horarios disponibles para esta fecha y cancha.';
+                }
+            })
+            .catch(error => {
+                verificacionDiv.className = 'alert alert-warning';
+                verificacionDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> No se pudo verificar disponibilidad. Intenta de todos modos.';
+            });
+    }
+
+    // Agregar listeners
+    canchaSelect.addEventListener('change', verificarDisponibilidad);
+    fechaInput.addEventListener('change', verificarDisponibilidad);
+    horaInicioInput.addEventListener('change', verificarDisponibilidad);
+    horaFinInput.addEventListener('change', verificarDisponibilidad);
+
+    // Verificar al cargar si hay valores prellenados
+    if (canchaSelect.value && fechaInput.value && horaInicioInput.value && horaFinInput.value) {
+        verificarDisponibilidad();
+    }
+});
+</script>
+{% endblock %}

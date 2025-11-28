@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Usuario, MensajePartido, Partido, Localidad, Recinto, Cancha, Equipo, PartidoCompetitivo, InvitacionEquipo, MiembroEquipo
+from .models import Usuario, MensajePartido, Partido, Localidad, Recinto, Cancha, Equipo, PartidoCompetitivo, InvitacionEquipo, MiembroEquipo, Reserva, HorarioCancha
 
 
 class LoginForm(AuthenticationForm):
@@ -99,6 +99,29 @@ class PartidoForm(forms.ModelForm):
         }),
         input_formats=['%Y-%m-%dT%H:%M']
     )
+    # Campos opcionales para reserva de cancha
+    reservar_cancha = forms.BooleanField(
+        required=False,
+        initial=False,
+        label='Reservar Cancha',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input', 'id': 'reservar_cancha'})
+    )
+    id_cancha_reserva = forms.ModelChoiceField(
+        queryset=Cancha.objects.select_related('id_recinto').all(),
+        required=False,
+        label='Cancha',
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_cancha_reserva'})
+    )
+    hora_inicio_reserva = forms.TimeField(
+        required=False,
+        label='Hora Inicio Reserva',
+        widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time', 'step': '1800'})
+    )
+    hora_fin_reserva = forms.TimeField(
+        required=False,
+        label='Hora Fin Reserva',
+        widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time', 'step': '1800'})
+    )
     
     class Meta:
         model = Partido
@@ -130,6 +153,27 @@ class PartidoForm(forms.ModelForm):
             'max_jugadores': 'Máximo de Jugadores',
             'descripcion': 'Descripción'
         }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        reservar = cleaned_data.get('reservar_cancha')
+        
+        if reservar:
+            cancha = cleaned_data.get('id_cancha_reserva')
+            hora_inicio = cleaned_data.get('hora_inicio_reserva')
+            hora_fin = cleaned_data.get('hora_fin_reserva')
+            
+            if not cancha:
+                self.add_error('id_cancha_reserva', 'Debes seleccionar una cancha.')
+            if not hora_inicio:
+                self.add_error('hora_inicio_reserva', 'Debes especificar hora de inicio.')
+            if not hora_fin:
+                self.add_error('hora_fin_reserva', 'Debes especificar hora de fin.')
+            
+            if hora_inicio and hora_fin and hora_inicio >= hora_fin:
+                self.add_error('hora_fin_reserva', 'La hora de fin debe ser posterior a la hora de inicio.')
+        
+        return cleaned_data
 
 
 # -----------------------
@@ -222,4 +266,60 @@ class AsignarNumeroCamisetaForm(forms.ModelForm):
         fields = ['numero_camiseta']
         widgets = {
             'numero_camiseta': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 99, 'placeholder': 'Número'}),
+        }
+
+# -----------------------
+# Formularios de Reservas y Horarios
+# -----------------------
+class ReservaForm(forms.ModelForm):
+    fecha_reserva = forms.DateField(
+        label='Fecha',
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        })
+    )
+    
+    class Meta:
+        model = Reserva
+        fields = ['id_cancha', 'fecha_reserva', 'hora_inicio', 'hora_fin', 'notas']
+        widgets = {
+            'id_cancha': forms.Select(attrs={'class': 'form-select', 'id': 'id_cancha'}),
+            'hora_inicio': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time', 'step': '1800'}),
+            'hora_fin': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time', 'step': '1800'}),
+            'notas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Observaciones (opcional)'}),
+        }
+        labels = {
+            'id_cancha': 'Cancha',
+            'fecha_reserva': 'Fecha',
+            'hora_inicio': 'Hora de Inicio',
+            'hora_fin': 'Hora de Fin',
+            'notas': 'Notas'
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Prellenar datetime si viene desde disponibilidad
+        if 'initial' in kwargs and 'fecha_reserva' in kwargs['initial']:
+            fecha_str = kwargs['initial']['fecha_reserva']
+            if ' ' in fecha_str:  # Si viene con hora
+                from datetime import datetime
+                dt = datetime.fromisoformat(fecha_str)
+                self.fields['fecha_reserva'].initial = dt.date()
+
+class HorarioCanchaForm(forms.ModelForm):
+    class Meta:
+        model = HorarioCancha
+        fields = ['dia_semana', 'hora_inicio', 'hora_fin', 'activo']
+        widgets = {
+            'dia_semana': forms.Select(attrs={'class': 'form-select'}),
+            'hora_inicio': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'hora_fin': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'dia_semana': 'Día de la Semana',
+            'hora_inicio': 'Hora de Apertura',
+            'hora_fin': 'Hora de Cierre',
+            'activo': 'Activo'
         }

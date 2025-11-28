@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import Usuario, Localidad, Reserva, Partido, ParticipantePartido, MensajePartido, Notificacion
+from .models import (Usuario, Localidad, Reserva, Partido, ParticipantePartido, 
+                     MensajePartido, Notificacion, Recinto, Cancha, HorarioCancha,
+                     Equipo, MiembroEquipo, PartidoCompetitivo, InvitacionEquipo, EstadisticaJugador)
 
 
 class UsuarioAdmin(BaseUserAdmin):
@@ -30,9 +32,9 @@ class LocalidadAdmin(admin.ModelAdmin):
 
 @admin.register(Reserva)
 class ReservaAdmin(admin.ModelAdmin):
-    list_display = ('id_reserva', 'id_cancha', 'id_usuario', 'fecha_reserva', 'hora_inicio', 'hora_fin')
+    list_display = ('id_reserva', 'id_cancha', 'id_usuario', 'fecha_reserva', 'hora_inicio', 'hora_fin', 'estado')
     search_fields = ('id_usuario__nombre', 'id_usuario__apellido')
-    list_filter = ('fecha_reserva', 'id_cancha')
+    list_filter = ('fecha_reserva', 'id_cancha', 'estado')
     date_hierarchy = 'fecha_reserva'
 
 
@@ -86,4 +88,68 @@ class NotificacionAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Usuario, UsuarioAdmin)
+
+
+@admin.register(Recinto)
+class RecintoAdmin(admin.ModelAdmin):
+    list_display = ('id_recinto', 'nombre', 'direccion', 'id_localidad', 'fecha_creacion')
+    search_fields = ('nombre', 'direccion')
+    list_filter = ('id_localidad', 'fecha_creacion')
+
+
+@admin.register(Cancha)
+class CanchaAdmin(admin.ModelAdmin):
+    list_display = ('id_cancha', 'nombre', 'id_recinto', 'tipo', 'fecha_creacion')
+    search_fields = ('nombre', 'id_recinto__nombre')
+    list_filter = ('id_recinto',)
+
+
+@admin.register(HorarioCancha)
+class HorarioCanchaAdmin(admin.ModelAdmin):
+    list_display = ('id_horario', 'id_cancha', 'dia_semana_display', 'hora_inicio', 'hora_fin', 'activo')
+    search_fields = ('id_cancha__nombre',)
+    list_filter = ('dia_semana', 'activo', 'id_cancha')
+    ordering = ('id_cancha', 'dia_semana', 'hora_inicio')
+    
+    def dia_semana_display(self, obj):
+        dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+        return dias[obj.dia_semana]
+    dia_semana_display.short_description = 'Día'
+
+
+@admin.register(Equipo)
+class EquipoAdmin(admin.ModelAdmin):
+    list_display = ('id_equipo', 'nombre', 'id_anfitrion', 'fecha_creacion')
+    search_fields = ('nombre', 'id_anfitrion__nombre')
+    list_filter = ('fecha_creacion',)
+
+
+@admin.register(MiembroEquipo)
+class MiembroEquipoAdmin(admin.ModelAdmin):
+    list_display = ('id_miembro', 'id_equipo', 'id_usuario', 'rol', 'fecha_union')
+    search_fields = ('id_usuario__nombre', 'id_equipo__nombre')
+    list_filter = ('rol', 'fecha_union')
+
+
+@admin.register(PartidoCompetitivo)
+class PartidoCompetitivoAdmin(admin.ModelAdmin):
+    list_display = ('id_partido', 'id_equipo_local', 'id_equipo_visitante', 'fecha_hora', 'estado')
+    search_fields = ('id_equipo_local__nombre', 'id_equipo_visitante__nombre')
+    list_filter = ('estado', 'fecha_hora')
+    date_hierarchy = 'fecha_hora'
+
+
+@admin.register(InvitacionEquipo)
+class InvitacionEquipoAdmin(admin.ModelAdmin):
+    list_display = ('id_invitacion', 'id_equipo', 'id_usuario', 'estado', 'fecha_invitacion')
+    search_fields = ('id_usuario__nombre', 'id_equipo__nombre')
+    list_filter = ('estado', 'fecha_invitacion')
+
+
+@admin.register(EstadisticaJugador)
+class EstadisticaJugadorAdmin(admin.ModelAdmin):
+    list_display = ('id_estadistica', 'id_usuario', 'id_partido', 'goles', 'asistencias', 'tarjetas_amarillas', 'tarjetas_rojas')
+    search_fields = ('id_usuario__nombre', 'id_partido__id_equipo_local__nombre')
+    list_filter = ('id_partido__fecha_hora',)
+
 

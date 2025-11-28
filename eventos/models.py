@@ -123,6 +123,16 @@ class Reserva(models.Model):
     hora_fin = models.TimeField()
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+    estado = models.CharField(
+        max_length=20,
+        choices=[
+            ('confirmada', 'Confirmada'),
+            ('cancelada', 'Cancelada'),
+            ('completada', 'Completada'),
+        ],
+        default='confirmada'
+    )
+    notas = models.TextField(blank=True, null=True, help_text='Observaciones de la reserva')
     
     class Meta:
         db_table = 'reservas'
@@ -130,7 +140,72 @@ class Reserva(models.Model):
         verbose_name_plural = 'Reservas'
     
     def __str__(self):
-        return f"Reserva {self.id_reserva} - {self.id_cancha.nombre} - {self.fecha_reserva}"
+        return f"Reserva {self.id_reserva} - {self.id_cancha.nombre} - {self.fecha_reserva.date()} {self.hora_inicio}"
+    
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        from datetime import datetime, timedelta
+        
+        # Validar que hora_inicio sea menor que hora_fin
+        if self.hora_inicio >= self.hora_fin:
+            raise ValidationError('La hora de inicio debe ser anterior a la hora de fin.')
+        
+        # Calcular duración
+        inicio_dt = datetime.combine(self.fecha_reserva.date(), self.hora_inicio)
+        fin_dt = datetime.combine(self.fecha_reserva.date(), self.hora_fin)
+        duracion = (fin_dt - inicio_dt).total_seconds() / 60
+        
+        # Validar duración mínima y máxima
+        if duracion < 30:
+            raise ValidationError('La duración mínima de una reserva es 30 minutos.')
+        if duracion > 240:
+            raise ValidationError('La duración máxima de una reserva es 4 horas.')
+        
+        # Verificar que la fecha no sea en el pasado
+        from django.utils import timezone
+        if self.fecha_reserva.date() < timezone.now().date():
+            raise ValidationError('No se pueden hacer reservas para fechas pasadas.')
+        
+        # Verificar disponibilidad según HorarioCancha
+        dia_semana = self.fecha_reserva.weekday()
+        horarios_disponibles = HorarioCancha.objects.filter(
+            id_cancha=self.id_cancha,
+            dia_semana=dia_semana,
+            activo=True
+        )
+        
+        if not horarios_disponibles.exists():
+            raise ValidationError(f'La cancha no tiene horarios disponibles para {self.fecha_reserva.strftime("%A")}.')
+        
+        # Verificar que el horario esté dentro de los horarios disponibles
+        dentro_horario = False
+        for horario in horarios_disponibles:
+            if self.hora_inicio >= horario.hora_inicio and self.hora_fin <= horario.hora_fin:
+                dentro_horario = True
+                break
+        
+        if not dentro_horario:
+            raise ValidationError('El horario seleccionado está fuera de los horarios disponibles de la cancha.')
+        
+        # Verificar solapamiento con otras reservas confirmadas
+        reservas_solapadas = Reserva.objects.filter(
+            id_cancha=self.id_cancha,
+            fecha_reserva__date=self.fecha_reserva.date(),
+            estado='confirmada'
+        ).exclude(id_reserva=self.id_reserva)
+        
+        for reserva in reservas_solapadas:
+            if not (self.hora_fin <= reserva.hora_inicio or self.hora_inicio >= reserva.hora_fin):
+                raise ValidationError(
+                    f'Ya existe una reserva para este horario: {reserva.hora_inicio} - {reserva.hora_fin}'
+                )
+    
+    def duracion_minutos(self):
+        """Calcular duración de la reserva en minutos"""
+        from datetime import datetime
+        inicio_dt = datetime.combine(self.fecha_reserva.date(), self.hora_inicio)
+        fin_dt = datetime.combine(self.fecha_reserva.date(), self.hora_fin)
+        return int((fin_dt - inicio_dt).total_seconds() / 60)
 
 
 class Partido(models.Model):
@@ -268,6 +343,103 @@ class Cancha(models.Model):
 
     def __str__(self):
         return f"{self.nombre} - {self.id_recinto.nombre}"
+    
+    def get_horarios_disponibles(self, fecha, duracion_minutos=90):
+        """Obtener slots de horarios disponibles para una fecha específica"""
+        from datetime import datetime, timedelta
+        
+        dia_semana = fecha.weekday()  # 0=Lunes, 6=Domingo
+        horarios_cancha = self.horarios.filter(dia_semana=dia_semana, activo=True)
+        
+        if not horarios_cancha.exists():
+            return []
+        
+        # Obtener reservas existentes para esa fecha
+        reservas_existentes = Reserva.objects.filter(
+            id_cancha=self,
+            fecha_reserva__date=fecha
+        ).values_list('hora_inicio', 'hora_fin')
+        
+        slots_disponibles = []
+        for horario in horarios_cancha:
+            hora_actual = horario.hora_inicio
+            while hora_actual < horario.hora_fin:
+                # Calcular hora_fin del slot
+                hora_inicio_dt = datetime.combine(fecha, hora_actual)
+                hora_fin_dt = hora_inicio_dt + timedelta(minutes=duracion_minutos)
+                hora_fin_slot = hora_fin_dt.time()
+                
+                # Verificar que no exceda el horario de la cancha
+                if hora_fin_slot > horario.hora_fin:
+                    break
+                
+                # Verificar que no solape con reservas existentes
+                solapa = False
+                for res_inicio, res_fin in reservas_existentes:
+                    if not (hora_fin_slot <= res_inicio or hora_actual >= res_fin):
+                        solapa = True
+                        break
+                
+                if not solapa:
+                    slots_disponibles.append({
+                        'hora_inicio': hora_actual,
+                        'hora_fin': hora_fin_slot,
+                        'disponible': True
+                    })
+                
+                # Avanzar en intervalos de 30 minutos
+                hora_inicio_dt += timedelta(minutes=30)
+                hora_actual = hora_inicio_dt.time()
+        
+        return slots_disponibles
+
+
+class HorarioCancha(models.Model):
+    """Define los horarios de disponibilidad de una cancha por día de la semana"""
+    DIAS_SEMANA = [
+        (0, 'Lunes'),
+        (1, 'Martes'),
+        (2, 'Miércoles'),
+        (3, 'Jueves'),
+        (4, 'Viernes'),
+        (5, 'Sábado'),
+        (6, 'Domingo'),
+    ]
+    
+    id_horario = models.AutoField(primary_key=True)
+    id_cancha = models.ForeignKey(Cancha, on_delete=models.CASCADE, related_name='horarios')
+    dia_semana = models.IntegerField(choices=DIAS_SEMANA, help_text='0=Lunes, 6=Domingo')
+    hora_inicio = models.TimeField(help_text='Hora de apertura')
+    hora_fin = models.TimeField(help_text='Hora de cierre')
+    activo = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'horarios_cancha'
+        verbose_name = 'Horario de Cancha'
+        verbose_name_plural = 'Horarios de Canchas'
+        ordering = ['dia_semana', 'hora_inicio']
+        unique_together = ['id_cancha', 'dia_semana', 'hora_inicio']
+    
+    def __str__(self):
+        return f"{self.id_cancha.nombre} - {self.get_dia_semana_display()} {self.hora_inicio}-{self.hora_fin}"
+    
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.hora_inicio >= self.hora_fin:
+            raise ValidationError('La hora de inicio debe ser anterior a la hora de fin.')
+        
+        # Verificar solapamiento con otros horarios de la misma cancha y día
+        solapamientos = HorarioCancha.objects.filter(
+            id_cancha=self.id_cancha,
+            dia_semana=self.dia_semana,
+            activo=True
+        ).exclude(id_horario=self.id_horario)
+        
+        for horario in solapamientos:
+            if not (self.hora_fin <= horario.hora_inicio or self.hora_inicio >= horario.hora_fin):
+                raise ValidationError(f'Este horario solapa con otro horario existente: {horario}')
 
 
 # ------------------------
