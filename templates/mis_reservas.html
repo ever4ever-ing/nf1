@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Reservas - NF1 Eventos{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h4">
+                <i class="bi bi-calendar-check"></i> Mis Reservas de Canchas
+            </h1>
+            <p class="text-muted">Gestiona tus reservas de canchas activas y consulta tu historial</p>
+        </div>
+    </div>
+
+    <!-- Botón para crear nueva reserva -->
+    <div class="text-end mb-4">
+        <a href="{% url 'crear_reserva' %}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Nueva Reserva
+        </a>
+        <a href="{% url 'disponibilidad_cancha' %}" class="btn btn-outline-info">
+            <i class="bi bi-calendar3"></i> Ver Disponibilidad
+        </a>
+    </div>
+
+    <!-- Tabs para Futuras y Pasadas -->
+    <ul class="nav nav-tabs mb-4" id="reservasTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="futuras-tab" data-bs-toggle="tab" data-bs-target="#futuras" type="button" role="tab">
+                <i class="bi bi-clock"></i> Próximas Reservas 
+                <span class="badge bg-primary">{{ reservas_futuras|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pasadas-tab" data-bs-toggle="tab" data-bs-target="#pasadas" type="button" role="tab">
+                <i class="bi bi-clock-history"></i> Historial 
+                <span class="badge bg-secondary">{{ reservas_pasadas|length }}</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="reservasTabsContent">
+        <!-- Reservas Futuras -->
+        <div class="tab-pane fade show active" id="futuras" role="tabpanel">
+            {% if reservas_futuras %}
+                <div class="row">
+                    {% for reserva in reservas_futuras %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card shadow-sm h-100 border-{% if reserva.estado == 'confirmada' %}success{% elif reserva.estado == 'cancelada' %}danger{% else %}secondary{% endif %}">
+                                <div class="card-header bg-{% if reserva.estado == 'confirmada' %}success{% elif reserva.estado == 'cancelada' %}danger{% else %}secondary{% endif %} text-white">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-diagram-3"></i> {{ reserva.id_cancha.nombre }}
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2">
+                                        <i class="bi bi-building"></i> <strong>Recinto:</strong><br>
+                                        {{ reserva.id_cancha.id_recinto.nombre }}
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="bi bi-calendar-event"></i> <strong>Fecha:</strong><br>
+                                        {{ reserva.fecha_reserva|date:"l, d 'de' F 'de' Y" }}
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="bi bi-clock"></i> <strong>Horario:</strong><br>
+                                        {{ reserva.hora_inicio }} - {{ reserva.hora_fin }}
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="bi bi-hourglass-split"></i> <strong>Duración:</strong><br>
+                                        {{ reserva.duracion_minutos }} minutos
+                                    </p>
+                                    <p class="mb-0">
+                                        <span class="badge bg-{% if reserva.estado == 'confirmada' %}success{% elif reserva.estado == 'cancelada' %}danger{% else %}secondary{% endif %}">
+                                            {{ reserva.get_estado_display }}
+                                        </span>
+                                    </p>
+                                    {% if reserva.notas %}
+                                        <hr>
+                                        <p class="small text-muted mb-0">
+                                            <i class="bi bi-sticky"></i> {{ reserva.notas }}
+                                        </p>
+                                    {% endif %}
+                                </div>
+                                {% if reserva.estado == 'confirmada' %}
+                                    <div class="card-footer text-end">
+                                        <a href="{% url 'cancelar_reserva' reserva.id_reserva %}" 
+                                           class="btn btn-sm btn-danger"
+                                           onclick="return confirm('¿Estás seguro de cancelar esta reserva?')">
+                                            <i class="bi bi-x-circle"></i> Cancelar
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center" role="alert">
+                    <i class="bi bi-calendar-x"></i> No tienes reservas próximas.
+                    <br><br>
+                    <a href="{% url 'crear_reserva' %}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Crear tu primera reserva
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Reservas Pasadas -->
+        <div class="tab-pane fade" id="pasadas" role="tabpanel">
+            {% if reservas_pasadas %}
+                <div class="row">
+                    {% for reserva in reservas_pasadas %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card shadow-sm h-100 border-secondary">
+                                <div class="card-header bg-secondary text-white">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-diagram-3"></i> {{ reserva.id_cancha.nombre }}
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2">
+                                        <i class="bi bi-building"></i> <strong>Recinto:</strong><br>
+                                        {{ reserva.id_cancha.id_recinto.nombre }}
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="bi bi-calendar-event"></i> <strong>Fecha:</strong><br>
+                                        {{ reserva.fecha_reserva|date:"d/m/Y" }}
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="bi bi-clock"></i> <strong>Horario:</strong><br>
+                                        {{ reserva.hora_inicio }} - {{ reserva.hora_fin }}
+                                    </p>
+                                    <p class="mb-0">
+                                        <span class="badge bg-{% if reserva.estado == 'confirmada' %}success{% elif reserva.estado == 'cancelada' %}danger{% else %}secondary{% endif %}">
+                                            {{ reserva.get_estado_display }}
+                                        </span>
+                                    </p>
+                                    {% if reserva.notas %}
+                                        <hr>
+                                        <p class="small text-muted mb-0">
+                                            <i class="bi bi-sticky"></i> {{ reserva.notas }}
+                                        </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-secondary text-center" role="alert">
+                    <i class="bi bi-clock-history"></i> No tienes reservas en el historial.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -396,6 +396,34 @@ def crear_partido(request):
         if form.is_valid():
             partido = form.save(commit=False)
             partido.id_organizador = request.user
+            
+            # Procesar reserva de cancha si está marcada
+            reserva_creada = None
+            if form.cleaned_data.get('reservar_cancha'):
+                try:
+                    cancha = form.cleaned_data['id_cancha_reserva']
+                    fecha_reserva = partido.fecha_inicio
+                    hora_inicio = form.cleaned_data['hora_inicio_reserva']
+                    hora_fin = form.cleaned_data['hora_fin_reserva']
+                    
+                    # Crear reserva
+                    reserva_creada = Reserva(
+                        id_cancha=cancha,
+                        id_recinto=cancha.id_recinto,
+                        id_usuario=request.user,
+                        fecha_reserva=fecha_reserva,
+                        hora_inicio=hora_inicio,
+                        hora_fin=hora_fin,
+                        estado='confirmada'
+                    )
+                    reserva_creada.full_clean()
+                    reserva_creada.save()
+                    partido.id_reserva = reserva_creada
+                    
+                except Exception as e:
+                    messages.error(request, f'Error al crear reserva: {str(e)}')
+                    return render(request, 'crear_partido.html', {'form': form})
+            
             partido.save()
             
             # Automáticamente inscribir al organizador en el partido
@@ -404,7 +432,10 @@ def crear_partido(request):
                 id_usuario=request.user
             )
             
-            messages.success(request, f'¡Partido creado exitosamente! Ahora otros jugadores podrán unirse.')
+            if reserva_creada:
+                messages.success(request, f'¡Partido creado exitosamente con reserva de cancha confirmada!')
+            else:
+                messages.success(request, f'¡Partido creado exitosamente! Ahora otros jugadores podrán unirse.')
             return redirect('detalle_partido', partido_id=partido.id_partido)
     else:
         form = PartidoForm()
@@ -575,6 +606,181 @@ def editar_cancha(request, pk):
     else:
         form = CanchaForm(instance=cancha)
     return render(request, 'canchas/form_cancha.html', {'form': form, 'titulo': f'Editar Cancha: {cancha.nombre}', 'cancha': cancha})
+
+# ------------------------
+# Vistas de Calendario y Reservas
+# ------------------------
+from .models import HorarioCancha
+from .forms import ReservaForm, HorarioCanchaForm
+from datetime import datetime, timedelta
+
+def disponibilidad_cancha(request):
+    """Mostrar calendario de disponibilidad de canchas"""
+    canchas = Cancha.objects.select_related('id_recinto').all()
+    
+    # Obtener cancha seleccionada desde query param
+    cancha_id = request.GET.get('cancha_id')
+    cancha_seleccionada = None
+    fechas_disponibles = []
+    
+    if cancha_id:
+        cancha_seleccionada = get_object_or_404(Cancha, id_cancha=cancha_id)
+        
+        # Obtener fecha desde query param o usar hoy
+        fecha_str = request.GET.get('fecha')
+        if fecha_str:
+            try:
+                fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+            except ValueError:
+                fecha = timezone.now().date()
+        else:
+            fecha = timezone.now().date()
+        
+        # Calcular rango de fechas para el calendario (próximos 14 días)
+        for i in range(14):
+            fecha_iter = fecha + timedelta(days=i)
+            # Obtener horarios con duración de 2 horas para el calendario
+            horarios = cancha_seleccionada.get_horarios_disponibles(fecha_iter, duracion_minutos=120)
+            fechas_disponibles.append({
+                'fecha': fecha_iter,
+                'horarios': horarios,
+            })
+    
+    context = {
+        'canchas': canchas,
+        'cancha_id': cancha_id,
+        'cancha_seleccionada': cancha_seleccionada,
+        'fechas_disponibles': fechas_disponibles,
+    }
+    return render(request, 'disponibilidad_cancha.html', context)
+
+@staff_member_required
+def gestionar_horarios_cancha(request, cancha_id):
+    """Gestionar horarios de disponibilidad de una cancha (admin)"""
+    cancha = get_object_or_404(Cancha, id_cancha=cancha_id)
+    horarios = HorarioCancha.objects.filter(id_cancha=cancha).order_by('dia_semana', 'hora_inicio')
+    
+    if request.method == 'POST':
+        form = HorarioCanchaForm(request.POST)
+        if form.is_valid():
+            horario = form.save(commit=False)
+            horario.id_cancha = cancha
+            try:
+                horario.full_clean()
+                horario.save()
+                messages.success(request, 'Horario agregado exitosamente.')
+                return redirect('gestionar_horarios_cancha', cancha_id=cancha_id)
+            except Exception as e:
+                messages.error(request, f'Error: {str(e)}')
+    else:
+        form = HorarioCanchaForm()
+    
+    context = {
+        'cancha': cancha,
+        'horarios': horarios,
+        'form': form,
+    }
+    return render(request, 'canchas/gestionar_horarios.html', context)
+
+@login_required
+def crear_reserva(request):
+    """Crear una nueva reserva"""
+    if request.method == 'POST':
+        form = ReservaForm(request.POST)
+        if form.is_valid():
+            reserva = form.save(commit=False)
+            reserva.id_usuario = request.user
+            reserva.id_recinto = reserva.id_cancha.id_recinto
+            try:
+                reserva.full_clean()
+                reserva.save()
+                messages.success(request, f'Reserva confirmada para {reserva.fecha_reserva} de {reserva.hora_inicio} a {reserva.hora_fin}.')
+                return redirect('mis_reservas')
+            except Exception as e:
+                messages.error(request, f'Error al crear reserva: {str(e)}')
+    else:
+        # Prellenar datos si vienen desde disponibilidad_cancha
+        initial_data = {}
+        if 'cancha' in request.GET:
+            initial_data['id_cancha'] = request.GET.get('cancha')
+        if 'fecha' in request.GET:
+            initial_data['fecha_reserva'] = request.GET.get('fecha')
+        if 'hora_inicio' in request.GET:
+            initial_data['hora_inicio'] = request.GET.get('hora_inicio')
+        if 'hora_fin' in request.GET:
+            initial_data['hora_fin'] = request.GET.get('hora_fin')
+        form = ReservaForm(initial=initial_data)
+    
+    return render(request, 'canchas/crear_reserva.html', {'form': form})
+
+@login_required
+def mis_reservas(request):
+    """Listar reservas del usuario"""
+    reservas = Reserva.objects.filter(
+        id_usuario=request.user
+    ).select_related('id_cancha', 'id_recinto').order_by('-fecha_reserva', '-hora_inicio')
+    
+    # Separar en futuras y pasadas
+    ahora = timezone.now()
+    reservas_futuras = reservas.filter(fecha_reserva__gte=ahora.date()).exclude(estado='cancelada')
+    reservas_pasadas = reservas.filter(
+        DJQ(fecha_reserva__lt=ahora.date()) | DJQ(estado='cancelada')
+    )[:20]
+    
+    context = {
+        'reservas_futuras': reservas_futuras,
+        'reservas_pasadas': reservas_pasadas,
+    }
+    return render(request, 'canchas/mis_reservas.html', context)
+
+@login_required
+def cancelar_reserva(request, reserva_id):
+    """Cancelar una reserva"""
+    reserva = get_object_or_404(Reserva, id_reserva=reserva_id, id_usuario=request.user)
+    
+    if reserva.estado == 'cancelada':
+        messages.warning(request, 'Esta reserva ya está cancelada.')
+        return redirect('mis_reservas')
+    
+    if request.method == 'POST':
+        reserva.estado = 'cancelada'
+        reserva.save()
+        messages.success(request, 'Reserva cancelada exitosamente.')
+        return redirect('mis_reservas')
+    
+    return render(request, 'canchas/cancelar_reserva.html', {'reserva': reserva})
+
+def api_horarios_disponibles(request):
+    """API endpoint para obtener horarios disponibles (AJAX)"""
+    cancha_id = request.GET.get('cancha_id')
+    if not cancha_id:
+        return JsonResponse({'error': 'cancha_id requerido'}, status=400)
+    
+    cancha = get_object_or_404(Cancha, id_cancha=cancha_id)
+    fecha_str = request.GET.get('fecha')
+    duracion = int(request.GET.get('duracion', 90))
+    
+    if not fecha_str:
+        return JsonResponse({'error': 'Fecha requerida'}, status=400)
+    
+    try:
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+    except ValueError:
+        return JsonResponse({'error': 'Formato de fecha inválido'}, status=400)
+    
+    horarios = cancha.get_horarios_disponibles(fecha, duracion)
+    
+    # Formatear respuesta
+    horarios_formateados = [{
+        'hora_inicio': slot['hora_inicio'].strftime('%H:%M'),
+        'hora_fin': slot['hora_fin'].strftime('%H:%M'),
+    } for slot in horarios]
+    
+    return JsonResponse({
+        'cancha': cancha.nombre,
+        'fecha': fecha_str,
+        'horarios': horarios_formateados
+    })
 
 # ------------------------
 # Vistas integradas competitiva (simplificadas)
