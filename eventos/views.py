@@ -614,41 +614,47 @@ from .models import HorarioCancha
 from .forms import ReservaForm, HorarioCanchaForm
 from datetime import datetime, timedelta
 
-def disponibilidad_cancha(request, cancha_id):
-    """Mostrar calendario de disponibilidad de una cancha"""
-    cancha = get_object_or_404(Cancha, id_cancha=cancha_id)
+def disponibilidad_cancha(request):
+    """Mostrar calendario de disponibilidad de canchas"""
+    canchas = Cancha.objects.select_related('id_recinto').all()
     
-    # Obtener fecha desde query param o usar hoy
-    fecha_str = request.GET.get('fecha')
-    if fecha_str:
-        try:
-            fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-        except ValueError:
-            fecha = timezone.now().date()
-    else:
-        fecha = timezone.now().date()
-    
-    # Calcular rango de fechas para el calendario (próximos 7 días)
+    # Obtener cancha seleccionada desde query param
+    cancha_id = request.GET.get('cancha_id')
+    cancha_seleccionada = None
     fechas_disponibles = []
-    for i in range(14):
-        fecha_iter = fecha + timedelta(days=i)
-        slots = cancha.get_horarios_disponibles(fecha_iter)
-        fechas_disponibles.append({
-            'fecha': fecha_iter,
-            'slots_count': len(slots),
-            'tiene_disponibilidad': len(slots) > 0
-        })
     
-    # Horarios para la fecha seleccionada
-    horarios_disponibles = cancha.get_horarios_disponibles(fecha)
+    if cancha_id:
+        try:
+            cancha_seleccionada = get_object_or_404(Cancha, id_cancha=cancha_id)
+            
+            # Obtener fecha desde query param o usar hoy
+            fecha_str = request.GET.get('fecha')
+            if fecha_str:
+                try:
+                    fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+                except ValueError:
+                    fecha = timezone.now().date()
+            else:
+                fecha = timezone.now().date()
+            
+            # Calcular rango de fechas para el calendario (próximos 14 días)
+            for i in range(14):
+                fecha_iter = fecha + timedelta(days=i)
+                horarios = cancha_seleccionada.get_horarios_disponibles(fecha_iter)
+                fechas_disponibles.append({
+                    'fecha': fecha_iter,
+                    'horarios': horarios,
+                })
+        except Exception:
+            pass
     
     context = {
-        'cancha': cancha,
-        'fecha_seleccionada': fecha,
+        'canchas': canchas,
+        'cancha_id': cancha_id,
+        'cancha_seleccionada': cancha_seleccionada,
         'fechas_disponibles': fechas_disponibles,
-        'horarios_disponibles': horarios_disponibles,
     }
-    return render(request, 'canchas/disponibilidad_cancha.html', context)
+    return render(request, 'disponibilidad_cancha.html', context)
 
 @staff_member_required
 def gestionar_horarios_cancha(request, cancha_id):
@@ -746,8 +752,12 @@ def cancelar_reserva(request, reserva_id):
     
     return render(request, 'canchas/cancelar_reserva.html', {'reserva': reserva})
 
-def api_horarios_disponibles(request, cancha_id):
+def api_horarios_disponibles(request):
     """API endpoint para obtener horarios disponibles (AJAX)"""
+    cancha_id = request.GET.get('cancha_id')
+    if not cancha_id:
+        return JsonResponse({'error': 'cancha_id requerido'}, status=400)
+    
     cancha = get_object_or_404(Cancha, id_cancha=cancha_id)
     fecha_str = request.GET.get('fecha')
     duracion = int(request.GET.get('duracion', 90))
@@ -763,16 +773,15 @@ def api_horarios_disponibles(request, cancha_id):
     horarios = cancha.get_horarios_disponibles(fecha, duracion)
     
     # Formatear respuesta
-    slots = [{
+    horarios_formateados = [{
         'hora_inicio': slot['hora_inicio'].strftime('%H:%M'),
         'hora_fin': slot['hora_fin'].strftime('%H:%M'),
-        'disponible': slot['disponible']
     } for slot in horarios]
     
     return JsonResponse({
         'cancha': cancha.nombre,
         'fecha': fecha_str,
-        'slots': slots
+        'horarios': horarios_formateados
     })
 
 # ------------------------
