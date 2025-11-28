@@ -696,7 +696,7 @@ def crear_reserva(request):
             try:
                 reserva.full_clean()
                 reserva.save()
-                messages.success(request, f'Reserva confirmada para {reserva.fecha_reserva.date()} de {reserva.hora_inicio} a {reserva.hora_fin}.')
+                messages.success(request, f'Reserva confirmada para {reserva.fecha_reserva} de {reserva.hora_inicio} a {reserva.hora_fin}.')
                 return redirect('mis_reservas')
             except Exception as e:
                 messages.error(request, f'Error al crear reserva: {str(e)}')

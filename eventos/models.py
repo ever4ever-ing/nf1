@@ -118,7 +118,7 @@ class Reserva(models.Model):
     id_cancha = models.ForeignKey('eventos.Cancha', on_delete=models.CASCADE, db_column='id_cancha')
     id_recinto = models.ForeignKey('eventos.Recinto', on_delete=models.CASCADE, db_column='id_recinto')
     id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, db_column='id_usuario')
-    fecha_reserva = models.DateTimeField()
+    fecha_reserva = models.DateField()
     hora_inicio = models.TimeField()
     hora_fin = models.TimeField()
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -140,7 +140,7 @@ class Reserva(models.Model):
         verbose_name_plural = 'Reservas'
     
     def __str__(self):
-        return f"Reserva {self.id_reserva} - {self.id_cancha.nombre} - {self.fecha_reserva.date()} {self.hora_inicio}"
+        return f"Reserva {self.id_reserva} - {self.id_cancha.nombre} - {self.fecha_reserva} {self.hora_inicio}"
     
     def clean(self):
         from django.core.exceptions import ValidationError
@@ -151,8 +151,8 @@ class Reserva(models.Model):
             raise ValidationError('La hora de inicio debe ser anterior a la hora de fin.')
         
         # Calcular duración
-        inicio_dt = datetime.combine(self.fecha_reserva.date(), self.hora_inicio)
-        fin_dt = datetime.combine(self.fecha_reserva.date(), self.hora_fin)
+        inicio_dt = datetime.combine(self.fecha_reserva, self.hora_inicio)
+        fin_dt = datetime.combine(self.fecha_reserva, self.hora_fin)
         duracion = (fin_dt - inicio_dt).total_seconds() / 60
         
         # Validar duración mínima y máxima
@@ -163,7 +163,7 @@ class Reserva(models.Model):
         
         # Verificar que la fecha no sea en el pasado
         from django.utils import timezone
-        if self.fecha_reserva.date() < timezone.now().date():
+        if self.fecha_reserva < timezone.now().date():
             raise ValidationError('No se pueden hacer reservas para fechas pasadas.')
         
         # Verificar disponibilidad según HorarioCancha
@@ -190,7 +190,7 @@ class Reserva(models.Model):
         # Verificar solapamiento con otras reservas confirmadas
         reservas_solapadas = Reserva.objects.filter(
             id_cancha=self.id_cancha,
-            fecha_reserva__date=self.fecha_reserva.date(),
+            fecha_reserva=self.fecha_reserva,
             estado='confirmada'
         ).exclude(id_reserva=self.id_reserva)
         
@@ -203,8 +203,8 @@ class Reserva(models.Model):
     def duracion_minutos(self):
         """Calcular duración de la reserva en minutos"""
         from datetime import datetime
-        inicio_dt = datetime.combine(self.fecha_reserva.date(), self.hora_inicio)
-        fin_dt = datetime.combine(self.fecha_reserva.date(), self.hora_fin)
+        inicio_dt = datetime.combine(self.fecha_reserva, self.hora_inicio)
+        fin_dt = datetime.combine(self.fecha_reserva, self.hora_fin)
         return int((fin_dt - inicio_dt).total_seconds() / 60)
 
 
@@ -357,7 +357,7 @@ class Cancha(models.Model):
         # Obtener reservas existentes para esa fecha
         reservas_existentes = Reserva.objects.filter(
             id_cancha=self,
-            fecha_reserva__date=fecha
+            fecha_reserva=fecha
         ).values_list('hora_inicio', 'hora_fin')
         
         slots_disponibles = []
