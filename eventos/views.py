@@ -624,29 +624,27 @@ def disponibilidad_cancha(request):
     fechas_disponibles = []
     
     if cancha_id:
-        try:
-            cancha_seleccionada = get_object_or_404(Cancha, id_cancha=cancha_id)
-            
-            # Obtener fecha desde query param o usar hoy
-            fecha_str = request.GET.get('fecha')
-            if fecha_str:
-                try:
-                    fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-                except ValueError:
-                    fecha = timezone.now().date()
-            else:
+        cancha_seleccionada = get_object_or_404(Cancha, id_cancha=cancha_id)
+        
+        # Obtener fecha desde query param o usar hoy
+        fecha_str = request.GET.get('fecha')
+        if fecha_str:
+            try:
+                fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+            except ValueError:
                 fecha = timezone.now().date()
-            
-            # Calcular rango de fechas para el calendario (próximos 14 días)
-            for i in range(14):
-                fecha_iter = fecha + timedelta(days=i)
-                horarios = cancha_seleccionada.get_horarios_disponibles(fecha_iter)
-                fechas_disponibles.append({
-                    'fecha': fecha_iter,
-                    'horarios': horarios,
-                })
-        except Exception:
-            pass
+        else:
+            fecha = timezone.now().date()
+        
+        # Calcular rango de fechas para el calendario (próximos 14 días)
+        for i in range(14):
+            fecha_iter = fecha + timedelta(days=i)
+            # Obtener horarios con duración de 2 horas para el calendario
+            horarios = cancha_seleccionada.get_horarios_disponibles(fecha_iter, duracion_minutos=120)
+            fechas_disponibles.append({
+                'fecha': fecha_iter,
+                'horarios': horarios,
+            })
     
     context = {
         'canchas': canchas,
@@ -696,7 +694,7 @@ def crear_reserva(request):
             try:
                 reserva.full_clean()
                 reserva.save()
-                messages.success(request, f'Reserva confirmada para {reserva.fecha_reserva.date()} de {reserva.hora_inicio} a {reserva.hora_fin}.')
+                messages.success(request, f'Reserva confirmada para {reserva.fecha_reserva} de {reserva.hora_inicio} a {reserva.hora_fin}.')
                 return redirect('mis_reservas')
             except Exception as e:
                 messages.error(request, f'Error al crear reserva: {str(e)}')

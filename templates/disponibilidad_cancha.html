@@ -54,19 +54,17 @@
                             <i class="bi bi-building"></i> <strong>Recinto:</strong> {{ cancha_seleccionada.id_recinto.nombre }}
                         </p>
                         <p class="mb-1">
-                            <i class="bi bi-pin-map"></i> <strong>Dirección:</strong> {{ cancha_seleccionada.id_recinto.direccion }}
+                            <i class="bi-pin-map"></i> <strong>Dirección:</strong> {{ cancha_seleccionada.id_recinto.direccion }}
                         </p>
+                        {% if cancha_seleccionada.tipo %}
                         <p class="mb-0">
-                            <i class="bi bi-aspect-ratio"></i> <strong>Dimensiones:</strong> {{ cancha_seleccionada.dimensiones }}
+                            <i class="bi bi-aspect-ratio"></i> <strong>Tipo:</strong> {{ cancha_seleccionada.tipo }}
                         </p>
+                        {% endif %}
                     </div>
                     <div class="col-md-4 text-end">
-                        <span class="badge bg-{% if cancha_seleccionada.techada %}info{% else %}warning{% endif %} fs-6">
-                            {% if cancha_seleccionada.techada %}
-                                <i class="bi bi-cloud-drizzle"></i> Techada
-                            {% else %}
-                                <i class="bi bi-sun"></i> Aire Libre
-                            {% endif %}
+                        <span class="badge bg-success fs-6">
+                            <i class="bi bi-calendar-check"></i> Disponible
                         </span>
                     </div>
                 </div>

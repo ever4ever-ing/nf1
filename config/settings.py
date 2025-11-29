@@ -47,6 +47,10 @@ RAILWAY_STATIC_URL = os.getenv('RAILWAY_STATIC_URL', '')
 if RAILWAY_STATIC_URL and RAILWAY_STATIC_URL not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RAILWAY_STATIC_URL)
 
+# Custom domain
+if 'www.nosfalta1.cl' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('www.nosfalta1.cl')
+
 # Allow all hosts in production if needed (not recommended for security, but helps debug)
 if not DEBUG and not ALLOWED_HOSTS:
     ALLOWED_HOSTS = ['*']
@@ -60,6 +64,10 @@ for domain in [
     'https://www.nosfalta1.cl']:
     if domain not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(domain)
+
+# Add custom domain to CSRF trusted origins
+if 'https://www.nosfalta1.cl' not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append('https://www.nosfalta1.cl')
 
 
 # Application definition
