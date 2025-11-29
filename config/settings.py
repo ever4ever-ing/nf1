@@ -53,6 +53,13 @@ if not DEBUG and not ALLOWED_HOSTS:
 
 # CSRF and Security settings for production
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')] if os.getenv('CSRF_TRUSTED_ORIGINS') else []
+# Forzar dominios críticos siempre presentes
+for domain in [
+    'https://nf1-production.up.railway.app',
+    'https://nosfalta1.cl',
+    'https://www.nosfalta1.cl']:
+    if domain not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(domain)
 
 
 # Application definition
