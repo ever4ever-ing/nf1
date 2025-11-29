@@ -29,7 +29,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'lista_canchas' %}"><i class="bi bi-diagram-3"></i> Canchas</a>
                     </li>
-    
+                    {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'ranking_usuarios' %}"><i class="bi bi-star-fill"></i> Ranking</a>
                     </li>
