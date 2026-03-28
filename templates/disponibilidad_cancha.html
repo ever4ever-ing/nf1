@@ -31,7 +31,7 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    {% if cancha_seleccionada %}
+                    {% if cancha_seleccionada and puede_gestionar_horarios_cancha %}
                         <a href="{% url 'gestionar_horarios_cancha' cancha_seleccionada.id_cancha %}" class="btn btn-outline-secondary w-100">
                             <i class="bi bi-gear"></i> Gestionar Horarios
                         </a>
@@ -78,30 +78,31 @@
                     <div class="card shadow-sm h-100">
                         <div class="card-header bg-primary text-white">
                             <h6 class="mb-0">
-                                <i class="bi bi-calendar-day"></i> 
-                                {{ fecha_info.fecha|date:"l, d 'de' F" }}
+                                <i class="bi bi-calendar-day"></i>
+                                {{ fecha_info.fecha|date:"l, j" }} de {{ fecha_info.fecha|date:"F" }}
                             </h6>
                         </div>
                         <div class="card-body">
                             {% if fecha_info.horarios %}
                                 <div class="list-group list-group-flush">
                                     {% for horario in fecha_info.horarios %}
+                                        {% with hi=horario.hora_inicio|time:'H:i' hf=horario.hora_fin|time:'H:i' fd=fecha_info.fecha|date:'Y-m-d' %}
                                         <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
                                             <span>
                                                 <i class="bi bi-clock text-success"></i>
                                                 {% if horario.hora_inicio and horario.hora_fin %}
-                                                {% if horario.hora_inicio and horario.hora_fin %}
-                                                    {{ horario.hora_inicio|time:"H:i" }} - {{ horario.hora_fin|time:"H:i" }}
+                                                    {{ hi }} – {{ hf }}
                                                 {% else %}
                                                     Horario inválido
                                                 {% endif %}
-                                                {% endif %}
                                             </span>
-                                            <a href="{% url 'crear_reserva' %}?cancha={{ cancha_seleccionada.id_cancha }}&fecha={{ fecha_info.fecha|date:'Y-m-d' }}&hora_inicio={{ horario.hora_inicio }}&hora_fin={{ horario.hora_fin }}" 
+                                            {# partidos/crear: cancha + fecha + horas para reserva del partido #}
+                                            <a href="{% url 'crear_partido' %}?cancha={{ cancha_seleccionada.id_cancha }}&amp;fecha={{ fd }}&amp;hora_inicio={{ hi|urlencode }}&amp;hora_fin={{ hf|urlencode }}&amp;hora={{ hi|urlencode }}"
                                                class="btn btn-sm btn-success">
                                                 <i class="bi bi-calendar-check"></i> Reservar
                                             </a>
                                         </div>
+                                        {% endwith %}
                                     {% endfor %}
                                 </div>
                             {% else %}

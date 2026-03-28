@@ -6,12 +6,17 @@ from .models import (Usuario, Localidad, Reserva, Partido, ParticipantePartido,
 
 
 class UsuarioAdmin(BaseUserAdmin):
-    list_display = ('email', 'nombre', 'apellido', 'is_admin')
-    list_filter = ('is_admin',)
+    list_display = ('email', 'nombre', 'apellido', 'is_admin', 'is_superuser')
+    list_filter = ('is_admin', 'is_superuser', 'is_active', 'groups')
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Información Personal', {'fields': ('nombre', 'apellido')}),
-        ('Permisos', {'fields': ('is_admin', 'is_active')}),
+        ('Información Personal', {'fields': ('nombre', 'apellido', 'foto_perfil', 'fecha_nacimiento', 'hobbies', 'biografia')}),
+        ('Permisos', {'fields': ('is_active', 'is_admin', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Gestión de recintos', {
+            'fields': ('recintos_gestion',),
+            'description': 'Asignar recintos a usuarios del grupo admin_recintos (los superusuarios ven todos sin asignar aquí).',
+        }),
+        ('Ranking', {'fields': ('puntos_friendly',)}),
     )
     add_fieldsets = (
         (None, {
@@ -21,7 +26,7 @@ class UsuarioAdmin(BaseUserAdmin):
     )
     search_fields = ('email', 'nombre', 'apellido')
     ordering = ('email',)
-    filter_horizontal = ()
+    filter_horizontal = ('groups', 'user_permissions', 'recintos_gestion')
 
 
 @admin.register(Localidad)
@@ -99,7 +104,7 @@ class RecintoAdmin(admin.ModelAdmin):
 
 @admin.register(Cancha)
 class CanchaAdmin(admin.ModelAdmin):
-    list_display = ('id_cancha', 'nombre', 'id_recinto', 'tipo', 'fecha_creacion')
+    list_display = ('id_cancha', 'nombre', 'id_recinto', 'tipo', 'max_jugadores', 'fecha_creacion')
     search_fields = ('nombre', 'id_recinto__nombre')
     list_filter = ('id_recinto',)
 

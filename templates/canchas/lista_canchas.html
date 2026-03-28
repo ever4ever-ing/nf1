@@ -25,14 +25,16 @@
     <div class="card-body p-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1 class="card-title h4 mb-0"><i class="bi bi-diagram-3 text-primary"></i> Canchas Disponibles</h1>
-            {% if user.is_staff %}
+            {% if puede_gestionar_canchas %}
             <div class="btn-group btn-group-sm" role="group">
                 <a href="{% url 'crear_cancha' %}" class="btn btn-primary">
                     <i class="bi bi-plus-circle"></i> Nueva Cancha
                 </a>
+                {% if es_admin_sitio %}
                 <a href="{% url 'lista_recintos' %}" class="btn btn-outline-primary">
                     <i class="bi bi-building"></i> Recintos
                 </a>
+                {% endif %}
             </div>
             {% endif %}
         </div>
@@ -89,9 +91,10 @@
     </div>
 </div>
 
-{% if canchas %}
+{% if canchas_con_slots %}
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
-        {% for cancha in canchas %}
+        {% for item in canchas_con_slots %}
+            {% with cancha=item.cancha slots_hoy=item.slots_hoy %}
             <div class="col">
                 <div class="card shadow-sm h-100 border-start border-success border-3">
                     <div class="card-body p-3">
@@ -120,29 +123,56 @@
                             </div>
                             {% endif %}
                         </div>
-                        
-                        {% if user.is_authenticated %}
-                        <div class="d-flex justify-content-center mt-3 gap-2">
-                            <button class="btn btn-outline-success btn-sm" disabled>
-                                <i class="bi bi-calendar-check"></i> Próximamente: Reservar
-                            </button>
-                            {% if user.is_staff %}
+
+                        <div class="border rounded p-2 bg-light bg-opacity-75 small mt-2 mb-2">
+                            <div class="fw-semibold text-primary mb-1">
+                                <i class="bi bi-clock-history"></i> Disponibilidad hoy
+                                <span class="text-muted fw-normal">({{ fecha_disponibilidad_listado|date:"j/m/Y" }}, bloques de {{ duracion_slot_minutos }} min)</span>
+                            </div>
+                            {% if slots_hoy %}
+                                <ul class="list-unstyled mb-0">
+                                    {% for slot in slots_hoy %}
+                                        <li class="py-1 border-bottom border-white">
+                                            <i class="bi bi-check-circle text-success"></i>
+                                            {{ slot.hora_inicio|time:"H:i" }} – {{ slot.hora_fin|time:"H:i" }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted mb-0">
+                                    <i class="bi bi-calendar-x"></i> Sin cupos libres hoy (sin horario ese día o ya reservado).
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex flex-wrap justify-content-center gap-2 mt-2">
+                            <a href="{% url 'disponibilidad_cancha' %}?cancha_id={{ cancha.id_cancha }}" class="btn btn-success btn-sm">
+                                <i class="bi bi-calendar3"></i> Ver 14 días
+                            </a>
+                            {% if user.is_authenticated %}
+                            <a href="{% url 'crear_partido' %}?cancha={{ cancha.id_cancha }}" class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-calendar-check"></i> Reservar
+                            </a>
+                            {% endif %}
+                            {% if user.is_authenticated %}
+                            {% if canchas_editables_todas or cancha.id_cancha in ids_canchas_editables %}
                             <a href="{% url 'editar_cancha' cancha.id_cancha %}" 
                                class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-pencil"></i> Editar
                             </a>
                             {% endif %}
+                            {% endif %}
                         </div>
-                        {% endif %}
                     </div>
                 </div>
             </div>
+            {% endwith %}
         {% endfor %}
     </div>
     
     <div class="mt-3">
         <p class="text-muted small">
-            <i class="bi bi-info-circle"></i> Se encontraron {{ canchas.count }} cancha{{ canchas.count|pluralize }}
+            <i class="bi bi-info-circle"></i> Se encontraron {{ canchas_con_slots|length }} cancha{{ canchas_con_slots|length|pluralize }}
         </p>
     </div>
 {% else %}

@@ -40,10 +40,12 @@
                         {{ form.id_recinto.errors }}
                     </div>
                 {% endif %}
+                {% if es_admin_sitio %}
                 <div class="form-text">
-                    <i class="bi bi-info-circle"></i> Si no encuentras el recinto, 
-                    <a href="{% url 'crear_recinto' %}" target="_blank">créalo primero</a>.
+                    <i class="bi bi-info-circle"></i> Si no encuentras el recinto,
+                    <a href="{% url 'crear_recinto' %}" target="_blank">créalo primero</a> (solo administradores).
                 </div>
+                {% endif %}
             </div>
             
             <div class="mb-3">
@@ -56,6 +58,21 @@
                         {{ form.tipo.errors }}
                     </div>
                 {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.max_jugadores.id_for_label }}" class="form-label">
+                    {{ form.max_jugadores.label }}
+                </label>
+                {{ form.max_jugadores }}
+                {% if form.max_jugadores.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.max_jugadores.errors }}
+                    </div>
+                {% endif %}
+                <div class="form-text small">
+                    Cupo máximo para partidos organizados en esta cancha.
+                </div>
             </div>
             
             <div class="d-flex gap-2">

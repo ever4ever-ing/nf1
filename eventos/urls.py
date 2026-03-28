@@ -27,6 +27,7 @@ urlpatterns = [
     path('ranking/', views.ranking_usuarios, name='ranking_usuarios'),
     # --- Rutas integradas de canchas ---
     path('canchas/', views.lista_canchas, name='lista_canchas'),
+    path('canchas/mis-canchas/', views.mis_canchas_admin, name='mis_canchas_admin'),
     path('canchas/recintos/', views.lista_recintos, name='lista_recintos'),
     path('canchas/recintos/crear/', views.crear_recinto, name='crear_recinto'),
     path('canchas/recintos/editar/<int:pk>/', views.editar_recinto, name='editar_recinto'),
