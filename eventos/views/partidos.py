@@ -243,7 +243,9 @@ def crear_partido(request):
             messages.success(request, '¡Partido creado exitosamente con reserva de cancha confirmada!')
             return redirect('detalle_partido', partido_id=partido.id_partido)
     else:
-        form = PartidoCrearForm(initial=_initial_partido_form_desde_querystring(request))
+        initial = _initial_partido_form_desde_querystring(request)
+        initial.setdefault('fecha_reserva', timezone.now().date())
+        form = PartidoCrearForm(initial=initial)
 
     return render(request, 'crear_partido.html', {'form': form})
 

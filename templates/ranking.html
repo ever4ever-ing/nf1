@@ -54,7 +54,7 @@
                                                 </div>
                                             {% endif %}
                                             <div>
-                                                <div class="fw-bold">{{ usuario.nombre }} {{ usuario.apellido }}</div>
+                                                <div class="fw-bold">{{ usuario.nombre_completo }}</div>
                                                 {% if usuario.id_usuario == request.user.id_usuario %}
                                                     <small class="text-primary"><i class="bi bi-person-fill"></i> Tú</small>
                                                 {% endif %}

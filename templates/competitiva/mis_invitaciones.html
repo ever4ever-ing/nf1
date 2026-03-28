@@ -13,7 +13,7 @@
             <div class="d-flex w-100 justify-content-between align-items-center">
                 <div>
                     <h5 class="mb-1">{{ invitacion.id_equipo.nombre }}</h5>
-                    <p class="mb-1">Invitado por: <strong>{{ invitacion.id_invitador.nombre }} {{ invitacion.id_invitador.apellido }}</strong></p>
+                    <p class="mb-1">Invitado por: <strong>{{ invitacion.id_invitador.nombre_completo }}</strong></p>
                     {% if invitacion.mensaje %}
                     <p class="mb-1 text-muted"><em>"{{ invitacion.mensaje }}"</em></p>
                     {% endif %}

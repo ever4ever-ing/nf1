@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis canchas - NF1{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h1 class="h4 mb-2"><i class="bi bi-grid-3x3-gap-fill text-primary"></i> Mis canchas</h1>
+        <p class="text-muted small mb-0">
+            Gestioná las canchas de tus recintos, los horarios de apertura y la disponibilidad para reservas.
+        </p>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    {% if es_admin_sitio %}
+    <a href="{% url 'lista_recintos' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-building"></i> Recintos</a>
+    {% endif %}
+    <a href="{% url 'crear_cancha' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle"></i> Nueva cancha</a>
+    <a href="{% url 'lista_canchas' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-diagram-3"></i> Ver todas las canchas públicas</a>
+</div>
+
+{% if not bloques_recinto %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No tenés recintos asignados para administrar. Pedí a un administrador que te asigne recintos en tu usuario (grupo <strong>admin_recintos</strong> y campo «Recintos que administra»).
+    </div>
+{% else %}
+    {% for bloque in bloques_recinto %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span><i class="bi bi-building"></i> {{ bloque.recinto.nombre }}</span>
+                <span class="small">{{ bloque.recinto.id_localidad.nombre }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if bloque.canchas %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Cancha</th>
+                                    <th>Tipo</th>
+                                    <th class="text-center">Horarios activos</th>
+                                    <th class="text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cancha in bloque.canchas %}
+                                    <tr>
+                                        <td class="fw-semibold">{{ cancha.nombre }}</td>
+                                        <td>
+                                            {% if cancha.tipo %}
+                                                <span class="badge bg-info text-dark">{{ cancha.tipo }}</span>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">{{ cancha.n_horarios_activos }}</td>
+                                        <td class="text-end text-nowrap">
+                                            <a href="{% url 'gestionar_horarios_cancha' cancha.id_cancha %}" class="btn btn-sm btn-outline-primary" title="Horarios de apertura por día">
+                                                <i class="bi bi-clock-history"></i> Horarios
+                                            </a>
+                                            <a href="{% url 'disponibilidad_cancha' %}?cancha_id={{ cancha.id_cancha }}" class="btn btn-sm btn-outline-success" title="Calendario de disponibilidad">
+                                                <i class="bi bi-calendar3"></i> Disponibilidad
+                                            </a>
+                                            <a href="{% url 'editar_cancha' cancha.id_cancha %}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i> Editar
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="p-3 text-muted small">
+                        <i class="bi bi-diagram-3"></i> No hay canchas en este recinto todavía.
+                        <a href="{% url 'crear_cancha' %}">Crear una cancha</a>
+                    </div>
+                {% endif %}
+            </div>
+            {% if es_admin_sitio %}
+            <div class="card-footer bg-light small">
+                <a href="{% url 'editar_recinto' bloque.recinto.id_recinto %}"><i class="bi bi-pencil-square"></i> Editar datos del recinto</a>
+            </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    {% if total_canchas == 0 and bloques_recinto %}
+        <div class="alert alert-warning small mb-0">
+            <i class="bi bi-exclamation-triangle"></i> Tenés recintos asignados pero aún sin canchas. Usá <strong>Nueva cancha</strong> para dar de alta la primera.
+        </div>
+    {% endif %}
+{% endif %}
+{% endblock %}

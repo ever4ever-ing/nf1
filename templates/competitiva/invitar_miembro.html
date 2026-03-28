@@ -14,7 +14,7 @@
                     <select name="id_usuario" id="id_usuario" class="form-select" required>
                         <option value="">Selecciona un usuario...</option>
                         {% for usuario in usuarios_disponibles %}
-                        <option value="{{ usuario.id_usuario }}">{{ usuario.nombre }} {{ usuario.apellido }} ({{ usuario.email }})</option>
+                        <option value="{{ usuario.id_usuario }}">{{ usuario.nombre_completo }}{% if usuario.email != usuario.nombre_completo %} ({{ usuario.email }}){% endif %}</option>
                         {% endfor %}
                     </select>
                 </div>

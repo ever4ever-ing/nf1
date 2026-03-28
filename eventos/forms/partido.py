@@ -11,8 +11,11 @@ class PartidoCrearForm(forms.ModelForm):
 
     fecha_reserva = forms.DateField(
         required=True,
-        label='Fecha del partido',
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date', 'id': 'id_fecha_reserva'}),
+        input_formats=['%Y-%m-%d'],
+        widget=forms.DateInput(
+            format='%Y-%m-%d',
+            attrs={'type': 'hidden', 'id': 'id_fecha_reserva'},
+        ),
     )
     id_cancha_reserva = forms.ModelChoiceField(
         queryset=Cancha.objects.select_related('id_recinto__id_localidad').all(),

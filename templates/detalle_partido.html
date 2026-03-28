@@ -51,7 +51,7 @@
             >
           </li>
           <li class="list-group-item">
-            <i class="bi bi-person-badge"></i> <strong>Organizador:</strong> {{ partido.id_organizador.nombre }} {{ partido.id_organizador.apellido }}
+            <i class="bi bi-person-badge"></i> <strong>Organizador:</strong> {{ partido.id_organizador.nombre_completo }}
           </li>
         </ul>
 
@@ -95,7 +95,7 @@
               {% for participante in participantes %}
               <li class="list-group-item d-flex justify-content-between align-items-center">
                 <span>
-                  <i class="bi bi-person-circle"></i> {{ participante.id_usuario.nombre }} {{ participante.id_usuario.apellido }}
+                  <i class="bi bi-person-circle"></i> {{ participante.id_usuario.nombre_completo }}
                 </span>
                 {% if participante.id_usuario == partido.id_organizador %}
                 <span class="badge bg-primary">Organizador</span>
@@ -131,7 +131,7 @@
                   <div>
                     <strong>
                       <i class="bi bi-person-circle"></i> 
-                      {{ mensaje.id_usuario.nombre }} {{ mensaje.id_usuario.apellido }}
+                      {{ mensaje.id_usuario.nombre_completo }}
                       {% if mensaje.id_usuario == partido.id_organizador %}
                       <span class="badge bg-primary ms-2">Organizador</span>
                       {% endif %}

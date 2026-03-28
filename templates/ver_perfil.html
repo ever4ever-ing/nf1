@@ -16,7 +16,7 @@
                             {{ usuario.nombre.0 }}{{ usuario.apellido.0 }}
                         </div>
                     {% endif %}
-                    <h3>{{ usuario.nombre }} {{ usuario.apellido }}</h3>
+                    <h3>{{ usuario.nombre_completo }}</h3>
                     {% if usuario.get_edad %}
                         <p class="text-muted">{{ usuario.get_edad }} años</p>
                     {% endif %}

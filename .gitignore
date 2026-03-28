@@ -1,7 +1,9 @@
 # Django
 *.pyc
 __pycache__/
+**/__pycache__/
 *.py[cod]
+*.pyo
 *$py.class
 *.so
 .Python
@@ -16,6 +18,7 @@ db.sqlite3-journal
 
 # Virtual environment
 venv/
+venv/**
 env/
 ENV/
 .venv

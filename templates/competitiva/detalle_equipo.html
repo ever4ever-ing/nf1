@@ -17,7 +17,7 @@
                 {% endif %}
                 <div>
                     <h2 class="mb-0">{{ equipo.nombre }}</h2>
-                    <small>Anfitrión: {{ equipo.id_anfitrion.nombre }} {{ equipo.id_anfitrion.apellido }}</small>
+                    <small>Anfitrión: {{ equipo.id_anfitrion.nombre_completo }}</small>
                 </div>
             </div>
             {% if es_anfitrion %}
@@ -99,7 +99,7 @@
                                         {% endif %}
                                         <div class="flex-grow-1">
                                             <h6 class="mb-0">
-                                                {{ miembro.id_usuario.nombre }} {{ miembro.id_usuario.apellido }}
+                                                {{ miembro.id_usuario.nombre_completo }}
                                                 {% if miembro.numero_camiseta %}
                                                     <span class="badge bg-secondary">#{{ miembro.numero_camiseta }}</span>
                                                 {% endif %}

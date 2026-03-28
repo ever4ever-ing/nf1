@@ -92,7 +92,7 @@
                         <tbody>
                             {% for est in estadisticas %}
                             <tr>
-                                <td>{{ est.id_usuario.nombre }} {{ est.id_usuario.apellido }}</td>
+                                <td>{{ est.id_usuario.nombre_completo }}</td>
                                 <td>{{ est.id_equipo.nombre }}</td>
                                 <td class="text-center">{{ est.goles }}</td>
                                 <td class="text-center">{{ est.asistencias }}</td>

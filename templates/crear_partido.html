@@ -9,9 +9,10 @@
             <i class="bi bi-calendar-plus text-primary"></i> Organizar Nuevo Partido
         </h1>
 
-        <div class="alert alert-info small mb-4" role="alert">
+        <div class="alert alert-info alert-dismissible fade show small mb-4" role="alert">
             <i class="bi bi-info-circle"></i>
-            <strong>Cancha y reserva.</strong> El lugar, la localidad, el cupo máximo y la fecha/hora del partido se toman de la <strong>cancha</strong> que elijas (el cupo se configura en cada cancha). Serás agregado como participante al crear el partido.
+            <strong>Cancha y reserva.</strong> El lugar, la localidad y el cupo salen de la <strong>cancha</strong>. La <strong>fecha</strong> del partido es la del día en que reservás (o la que elegiste en el calendario de disponibilidad si entraste desde ahí). Serás agregado como participante al crear el partido.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
         </div>
 
         <form method="post" class="needs-validation" novalidate>
@@ -23,6 +24,11 @@
                 </div>
             {% endif %}
 
+            {{ form.fecha_reserva }}
+            {% if form.fecha_reserva.errors %}
+                <div class="alert alert-danger small">{{ form.fecha_reserva.errors }}</div>
+            {% endif %}
+
             <div class="card border-success mb-4">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">
@@ -30,22 +36,8 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-light border small mb-3" role="status">
-                        <i class="bi bi-diagram-3"></i>
-                        La fecha y hora de inicio del partido coinciden con el inicio de tu reserva. El texto del <em>lugar</em> y el máximo de jugadores salen de la cancha elegida.
-                    </div>
-
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.fecha_reserva.id_for_label }}" class="form-label">
-                                <i class="bi bi-calendar-event"></i> {{ form.fecha_reserva.label }}
-                            </label>
-                            {{ form.fecha_reserva }}
-                            {% if form.fecha_reserva.errors %}
-                                <div class="invalid-feedback d-block">{{ form.fecha_reserva.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-12 mb-3">
                             <label for="{{ form.id_cancha_reserva.id_for_label }}" class="form-label">
                                 <i class="bi bi-diagram-3"></i> {{ form.id_cancha_reserva.label }}
                             </label>
@@ -182,7 +174,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (canchaSelect) canchaSelect.addEventListener('change', verificarDisponibilidad);
-    if (fechaReserva) fechaReserva.addEventListener('change', verificarDisponibilidad);
     if (horaInicio) horaInicio.addEventListener('change', verificarDisponibilidad);
     if (horaFin) horaFin.addEventListener('change', verificarDisponibilidad);
 });
